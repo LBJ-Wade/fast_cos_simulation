@@ -45,7 +45,7 @@ fs: $(OBJS)
 
 .PHONY: clean run dependence
 clean:
-	rm -f $(EXEC) $(OBJS) $(OBJS2) move_min.?
+	rm -f $(EXEC) $(OBJS)
 
 run:
 	mpirun -n 2 fs

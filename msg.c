@@ -6,11 +6,6 @@
 
 static enum LogLevel log_level;
 
-//void msg_init()
-//{
-  // pre-request: call comm_mpi_init() before this.
-//}
-
 void msg_set_loglevel(const enum LogLevel lv)
 {
   log_level= lv;
