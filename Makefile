@@ -28,7 +28,7 @@ LIBS   += $(foreach dir, $(DIR_PATH), -L$(dir)/lib)
 EXEC = fs
 all: $(EXEC)
 
-OBJS := main.o comm.o msg.o power.o cosmology.o
+OBJS := main.o comm.o msg.o power.o cosmology.o mem.o
 
 LIBS += -llua -ldl 
 LIBS += -lgsl -lgslcblas

@@ -18,23 +18,23 @@ static double growth_unnormalised(const double a);
 void cosmology_init(const double omega_m0_)
 {
   omega_m0= omega_m0_;
-  growth_fac= 1.0/growth_unnormalised(1.0); // D=1 at a=1
+  growth_fac= 1.0/growth_unnormalised(1.0); // D_growth=1 at a=1
 }
 
 double cosmology_D_growth(const double a)
 {
   // Linear growth factor D
-  assert(growth_fac > 0.0);
+  assert(growth_fac > 0.0); // initialised?
   return growth_fac*growth_unnormalised(a);
 }
 
 double cosmology_f_growth_rate(const double a)
 {
   // Linear growth rate f=dlnD/dlna
-  const double d_unin= growth_unnormalised(a);
+  const double d_un= growth_unnormalised(a);
   const double hf= cosmology_hubble_function(a);
 
-  return 1.0/(d_unin*a*a*hf*hf) - 1.5*omega_m0/(hf*hf*a*a*a);   
+  return 1.0/(d_un*a*a*hf*hf) - 1.5*omega_m0/(hf*hf*a*a*a);   
 }  
 
 
@@ -43,11 +43,11 @@ void cosmology_growth(const double a,
 {
   // Both linear growth factor D(a) and growth rate f=dlnD/dlna
   
-  const double d_unin= growth_unnormalised(a);
+  const double d_un= growth_unnormalised(a);
   const double hf= cosmology_hubble_function(a);
 
-  *D_result= growth_fac*d_unin;
-  *f_result= 1.0/(d_unin*a*a*hf*hf) - 1.5*omega_m0/(hf*hf*a*a*a);   
+  *D_result= growth_fac*d_un;
+  *f_result= 1.0/(d_un*a*a*hf*hf) - 1.5*omega_m0/(hf*hf*a*a*a);   
 }
 
 double cosmology_hubble_function(const double a)
@@ -60,7 +60,7 @@ double growth_integrand(double a, void* param)
 {
   // sqrt[(a*H/H0)^3]
   //return pow(a/(omega_m0 + (1 - Omega)*a*a*a), 1.5);
-  const double aHinv= 1.0/(a*sqrt(omega_m0/(a*a*a) + (1 - omega_m0)));
+  const double aHinv= 1.0/sqrt(omega_m0/a + (1 - omega_m0)*(a*a));
   return aHinv*aHinv*aHinv;
 }
 
