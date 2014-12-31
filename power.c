@@ -101,8 +101,8 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
       // sigma_8 computation
       double x= k*Rth;
       double w= 3.0*(sin(x)-x*cos(x))/(x*x*x);
-      P *= w*w;
-      sigma8_sq += 0.5*factor*(P*k*k + P_prev*k_prev*k_prev)*(k-k_prev);
+
+      sigma8_sq += 0.5*factor*(P*k*k + P_prev*k_prev*k_prev)*(w*w)*(k-k_prev);
       
       k_prev= k;
       P_prev= P;
@@ -120,9 +120,10 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
 
   // Check sigma8 (check skipped if sigma8_check = 0);
   const double sigma8= sqrt(sigma8_sq);
-  if(sigma8_check > 0)
+  msg_printf(normal, "sigma8= %e\n", sigma8);
+  
+  if(sigma8_check > 0.0)
     assert_double(sigma8, sigma8_check, 0.01);
-    
 
   // Allocate ps->log_k, ps->log_P and fill the arrays
   double* const v_logk= malloc(2*nlines*sizeof(double)); assert(v_logk);
