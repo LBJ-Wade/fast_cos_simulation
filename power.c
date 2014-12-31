@@ -47,7 +47,8 @@ void power_free(PowerSpectrum* ps)
 
 double power_spectrum(PowerSpectrum* const ps, const double k)
 {
-  double log_P= gsl_interp_eval(ps->interp, ps->log_k, ps->log_P, k, ps->acc);
+  double log_P=
+    gsl_interp_eval(ps->interp, ps->log_k, ps->log_P, log(k), ps->acc);
   return exp(log_P);
 }
   
