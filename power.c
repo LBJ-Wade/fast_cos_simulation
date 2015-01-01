@@ -9,7 +9,7 @@
 
 static void read_power_spectrum_file(const char filename[], const double sigma8_check, PowerSpectrum* const ps);
 
-PowerSpectrum* power_init(const char filename[], const double sigma8_check)
+PowerSpectrum* power_alloc(const char filename[], const double sigma8_check)
 {
   PowerSpectrum* const ps= malloc(sizeof(PowerSpectrum)); assert(ps);
 
@@ -86,6 +86,8 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
   // Doubles the length of buf when the length of the array is not enough
   while(fgets(line, 127, fp)) {
     if(nlines == nalloc) {
+      msg_printf(verbose, "reallocating power spectrum table %d -> %d\n",
+		 nalloc, 2*nalloc);
       nalloc *= 2;
       buf= realloc(buf, sizeof(double)*2*nalloc); assert(buf);
     }
@@ -117,15 +119,16 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
 
   int ret= fclose(fp); assert(ret == 0);
   
-  msg_printf(verbose, "Found %d pairs of values in the input power spectrum\n", nlines);
+  msg_printf(verbose, "Read %d pairs of k P(k) from %s\n", nlines, filename);
 
   // Check sigma8 (check skipped if sigma8_check = 0);
   const double sigma8= sqrt(sigma8_sq);
-  msg_printf(normal, "sigma8= %e\n", sigma8);
-  
   if(sigma8_check > 0.0)
     assert_double(sigma8, sigma8_check, 0.01);
 
+  msg_printf(normal, "sigma8= %f; expected= %f; relative err=%.2e; OK.\n",
+	     sigma8, sigma8_check, fabs(sigma8 - sigma8_check)/sigma8_check);
+  
   // Allocate ps->log_k, ps->log_P and fill the arrays
   double* const v_logk= malloc(2*nlines*sizeof(double)); assert(v_logk);
   double* const v_logP= v_logk + nlines;

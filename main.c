@@ -11,5 +11,5 @@ int main(int argc, char* argv[])
 
   msg_printf(normal, "Hello World\n");
 
-  MPI_Finalize();
+  comm_mpi_finalise();
 }

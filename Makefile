@@ -12,7 +12,7 @@ LIBS    := -lm
 
 
 # Compile options
-
+#OPT       += DOUBLEPRECISION
 
 # Define paths of FFTW3 & GSL libraries if necessary.
 
@@ -25,7 +25,7 @@ DIR_PATH = $(FFTW3_DIR) $(GSL_DIR) $(LUA_DIR)
 CFLAGS += $(foreach dir, $(DIR_PATH), -I$(dir)/include)
 LIBS   += $(foreach dir, $(DIR_PATH), -L$(dir)/lib)
 
-EXEC = fs
+EXEC = fs libfs.a
 all: $(EXEC)
 
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o
@@ -42,6 +42,10 @@ endif
 
 fs: $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $@
+
+# Library fs.a
+libfs.a: $(OBJS)
+	ar r $@ $(OBJS)
 
 .PHONY: clean run dependence
 clean:

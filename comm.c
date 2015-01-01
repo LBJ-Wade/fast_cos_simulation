@@ -29,6 +29,11 @@ void comm_mpi_init(int* p_argc, char*** p_argv)
   MPI_Comm_rank(MPI_COMM_WORLD, &this_node);
 }
 
+void comm_mpi_finalise(void)
+{
+  MPI_Finalize();
+}
+
 int comm_this_node(void)
 {
   return this_node;

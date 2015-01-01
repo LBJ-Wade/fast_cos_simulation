@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <math.h>
 #include <mpi.h>
@@ -6,10 +7,17 @@
 #include "msg.h"
 
 static enum LogLevel log_level;
+static char prefix[8]= "";
 
 void msg_set_loglevel(const enum LogLevel lv)
 {
   log_level= lv;
+}
+
+void msg_set_prefix(const char prefix_[])
+{
+  // Start messages with given prefix such as '#'
+  strncpy(prefix, prefix_, 7);
 }
 
 
@@ -19,8 +27,11 @@ void msg_printf(const enum LogLevel msg_level, const char *fmt, ...)
     va_list argp;
 
     va_start(argp, fmt);
+
+    fprintf(stdout, "%s", prefix);
     vfprintf(stdout, fmt, argp);
     fflush(stdout);
+
     va_end(argp);
   }
 }
