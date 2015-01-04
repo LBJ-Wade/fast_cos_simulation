@@ -126,7 +126,7 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
   if(sigma8_check > 0.0)
     assert_double(sigma8, sigma8_check, 0.01);
 
-  msg_printf(normal, "sigma8= %f; expected= %f; relative err=%.2e; OK.\n",
+  msg_printf(info, "sigma8= %f; expected= %f; relative err=%.2e; OK.\n",
 	     sigma8, sigma8_check, fabs(sigma8 - sigma8_check)/sigma8_check);
   
   // Allocate ps->log_k, ps->log_P and fill the arrays

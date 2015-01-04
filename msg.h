@@ -1,7 +1,8 @@
 #ifndef MSG_H
 #define MSG_H 1
 
-enum LogLevel {verbose, debug, normal, info, warn, error, fatal, silent};
+//enum LogLevel {verbose, debug, normal, info, warn, error, fatal, silent};
+enum LogLevel {debug, verbose, info, warn, error, fatal, silent};
 
 #ifdef NDEBUG
 #define assert_double(x, y, eps)

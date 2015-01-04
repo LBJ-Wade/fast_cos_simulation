@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
   //
   comm_mpi_init(&argc, &argv);
 
-  msg_printf(normal, "Hello World\n");
+  msg_printf(info, "Hello World\n");
 
   comm_mpi_finalise();
 }
