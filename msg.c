@@ -40,9 +40,11 @@ void msg_abort(const char *fmt, ...)
 {
   va_list argp;
 
-  va_start(argp, fmt);
-  vfprintf(stderr, fmt, argp);
-  va_end(argp);
+  if(log_level <= fatal) {
+    va_start(argp, fmt);
+    vfprintf(stdout, fmt, argp);
+    va_end(argp);
+  }
 
   MPI_Abort(MPI_COMM_WORLD, 1);
 }

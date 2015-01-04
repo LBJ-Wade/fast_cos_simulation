@@ -5,4 +5,6 @@
 
 char* util_new_str(char const * const);
 
+size_t mbytes(size_t bytes);
+
 #endif

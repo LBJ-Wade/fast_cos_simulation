@@ -15,3 +15,8 @@ char* util_new_str(char const * const src)
 
   return new_str;
 }
+
+size_t mbytes(size_t bytes)
+{
+  return bytes/(1024*1024);
+}
