@@ -17,5 +17,6 @@ Mem* mem_alloc(const char name[], const size_t size);
 void mem_free(Mem* const mem);
 
 void* mem_use_from_zero(Mem* const mem, size_t size);
+void* mem_use_remaining(Mem* const mem, size_t size);
 
 #endif

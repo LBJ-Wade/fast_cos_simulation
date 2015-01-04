@@ -69,9 +69,7 @@ Mem* mem_alloc(const char name[], const size_t size)
 
 void* mem_use_from_zero(Mem* const mem, size_t size)
 {
-  if(size % ALGN != 0)
-    size += ALGN - (size % ALGN);
-  assert(size % ALGN == 0);
+  size= size_align(size);
   
   if(size > mem->size_alloc)
     msg_abort("Error: Unable to use $lu MB in Mem %s (only %lu MB allocated)\n",
@@ -81,8 +79,10 @@ void* mem_use_from_zero(Mem* const mem, size_t size)
   return mem->buf;
 }
 
-void* mem_use_remaining(Mem* const mem, const size_t size)
+void* mem_use_remaining(Mem* const mem, size_t size)
 {
+  size= size_align(size);
+  
   if(size + mem->size_using > mem->size_alloc)
     msg_abort("Error: Unable to use %lu MB in Mem %s; %lu MB allocated, "
 	      "%lu remaining.\n",

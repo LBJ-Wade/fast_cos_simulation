@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "util.h"
 
+
 char* util_new_str(char const * const src)
 {
   if(src == NULL) {
@@ -20,3 +21,4 @@ size_t mbytes(size_t bytes)
 {
   return bytes/(1024*1024);
 }
+

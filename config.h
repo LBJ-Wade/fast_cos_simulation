@@ -16,7 +16,11 @@ typedef float float_t;
 #define M_PI        3.14159265358979323846264338327950288
 #endif
 
-// Memory allignment for SIMD instruction (see fftw3 source kernel/align.c)
+// Memory alignment for SIDM instructions, see
+// Section 3.1 SIMD alignment and fftw_malloc in FFTW3 manulal, and
+// FFTW3 kernel/align.c source code
 #define ALGN 16
+
+size_t size_align(size_t size);
 
 #endif
