@@ -15,8 +15,8 @@ enum LogLevel {debug, verbose, info, warn, error, fatal, silent};
 void msg_set_loglevel(const enum LogLevel level);
 void msg_set_prefix(const char prefix[]);
 
-void msg_printf(const enum LogLevel level, const char *fmt, ...);
-void msg_abort(const char *fmt, ...);
+void msg_printf(const enum LogLevel level, char const * const fmt, ...);
+void msg_abort(char const * const fmt, ...);
 
 void msg_assert_double(const char file[], const unsigned int line, const double x, const double x_expected, const double eps);
 #endif

@@ -21,7 +21,7 @@ void msg_set_prefix(const char prefix_[])
 }
 
 
-void msg_printf(const enum LogLevel msg_level, const char *fmt, ...)
+void msg_printf(const enum LogLevel msg_level, char const * const fmt, ...)
 {
   if(comm_this_node() == 0 && msg_level >= log_level) {
     va_list argp;
@@ -36,7 +36,7 @@ void msg_printf(const enum LogLevel msg_level, const char *fmt, ...)
   }
 }
 
-void msg_abort(const char *fmt, ...)
+void msg_abort(char const * const fmt, ...)
 {
   va_list argp;
 

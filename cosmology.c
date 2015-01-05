@@ -10,7 +10,7 @@
 #include "cosmology.h"
 
 static double omega_m0;
-static double growth_fac;
+static double growth_normalisation;
 
 static double growth_integrand(double a, void* param);
 static double growth_unnormalised(const double a);
@@ -18,18 +18,26 @@ static double growth_unnormalised(const double a);
 void cosmology_init(const double omega_m0_)
 {
   omega_m0= omega_m0_;
-  growth_fac= 1.0/growth_unnormalised(1.0); // D_growth=1 at a=1
+  growth_normalisation= 1.0/growth_unnormalised(1.0); // D_growth=1 at a=1
 }
 
 double cosmology_D_growth(const double a)
 {
   // Linear growth factor D
-  assert(growth_fac > 0.0); // initialised?
-  return growth_fac*growth_unnormalised(a);
+  assert(growth_normalisation > 0.0); // initialised?
+  return growth_normalisation*growth_unnormalised(a);
+}
+
+double cosmology_D2_growth(const double a, const double D)
+{
+  // 2nd-order growth factor D2
+  return -3.0/7.0*D*D*pow(cosmology_omega(a), -1.0/143.0);
 }
 
 double cosmology_f_growth_rate(const double a)
 {
+  assert(growth_normalisation > 0.0);
+  
   // Linear growth rate f=dlnD/dlna
   const double d_un= growth_unnormalised(a);
   const double hf= cosmology_hubble_function(a);
@@ -41,12 +49,13 @@ double cosmology_f_growth_rate(const double a)
 void cosmology_growth(const double a,
 		      double* const D_result, double* const f_result)
 {
+  assert(growth_normalisation > 0.0);
   // Both linear growth factor D(a) and growth rate f=dlnD/dlna
   
   const double d_un= growth_unnormalised(a);
   const double hf= cosmology_hubble_function(a);
 
-  *D_result= growth_fac*d_un;
+  *D_result= growth_normalisation*d_un;
   *f_result= 1.0/(d_un*a*a*hf*hf) - 1.5*omega_m0/(hf*hf*a*a*a);   
 }
 
@@ -54,6 +63,12 @@ double cosmology_hubble_function(const double a)
 {
   // H/H0= sqrt(Omega_m0*a^-3 + Omega_Lambda)
   return sqrt(omega_m0/(a*a*a) + (1 - omega_m0));
+}
+
+double cosmology_omega(const double a)
+{
+  // Omega_m(a)
+  return omega_m0/(omega_m0 + (1 - omega_m0)*(a*a*a));
 }
 
 double growth_integrand(double a, void* param)

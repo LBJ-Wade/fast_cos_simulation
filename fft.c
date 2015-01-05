@@ -24,6 +24,8 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 #endif
     
   size_t size= sizeof(complex_t)*ncomplex;
+  assert(fft->local_nx >= 0); assert(fft->local_ix0 >= 0);
+  
     
   if(mem == 0)
     mem= mem_alloc(name, size);
