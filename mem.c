@@ -35,7 +35,7 @@ void mem_reserve(Mem* const mem, size_t size, char const * const msg)
     mem->size_alloc= size;
 
   if(msg)
-    msg_printf(info, "%s requested %lu MB for %s\n",
+    msg_printf(msg_info, "%s requested %lu MB for %s\n",
 	       msg, size/(1024*1024), mem->name);
 }
 
@@ -53,7 +53,7 @@ void mem_alloc_reserved(Mem* const mem)
     msg_abort("Error: Unable to allocate %lu MB for %s\n",
 	      mem->size_alloc/(1024*1024), mem->name);
   else
-    msg_printf(info, "%lu MB allocated for mem %s\n",
+    msg_printf(msg_info, "%lu MB allocated for mem %s\n",
 	       mem->size_alloc/(1024*1024), mem->name);
 }
 

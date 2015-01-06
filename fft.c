@@ -13,8 +13,13 @@
 FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 {
   // Allocates memory for FFT real and Fourier space and initilise fftw_plans
+
+  msg_printf(msg_debug, "fft_alloc(%s, nc=%d)", name, nc);
+  msg_printf(msg_debug, "malloc(%lu)\n", sizeof(FFT));
   FFT* const fft= malloc(sizeof(FFT)); assert(fft);
   fft->nc= nc;
+
+  msg_printf(msg_debug, "fft_alloc nc= %d\n", nc);
 
   ptrdiff_t ncomplex=
 #ifdef DOUBLEPRECISION
@@ -24,7 +29,7 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
     fftwf_mpi_local_size_3d(nc, nc, nc, MPI_COMM_WORLD,
 			    &fft->local_nx, &fft->local_ix0);
 #endif
-    
+
   size_t size= sizeof(complex_t)*ncomplex;
   assert(fft->local_nx >= 0); assert(fft->local_ix0 >= 0);
   
@@ -179,4 +184,3 @@ void fft_free(FFT* const fft)
 
 // "To prevent memory leaks, you must still call fftw_destroy_plan
 //  before executing fftw_cleanup."
-

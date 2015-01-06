@@ -43,6 +43,7 @@ void power_free(PowerSpectrum* ps)
   gsl_interp_accel_free(ps->acc);
   gsl_interp_free(ps->interp);
   free(ps->log_k);
+  free(ps);
 }
 
 double power_spectrum(PowerSpectrum* const ps, const double k)
@@ -86,7 +87,7 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
   // Doubles the length of buf when the length of the array is not enough
   while(fgets(line, 127, fp)) {
     if(nlines == nalloc) {
-      msg_printf(verbose, "reallocating power spectrum table %d -> %d\n",
+      msg_printf(msg_verbose, "reallocating power spectrum table %d -> %d\n",
 		 nalloc, 2*nalloc);
       nalloc *= 2;
       buf= realloc(buf, sizeof(double)*2*nalloc); assert(buf);
@@ -112,22 +113,25 @@ void read_power_spectrum_file(const char filename[], const double sigma8_check, 
       nlines++;
     }
     else {
-      msg_printf(warn, "Warning: Unable to understand a line in the power spectrum file; following data are ignored: %s", line);
+      msg_printf(msg_warn, "Warning: Unable to understand a line in the power spectrum file; following data are ignored: %s", line);
       break;
     }
   }
 
   int ret= fclose(fp); assert(ret == 0);
   
-  msg_printf(verbose, "Read %d pairs of k P(k) from %s\n", nlines, filename);
+  msg_printf(msg_verbose, "Read %d pairs of k P(k) from %s\n", nlines, filename);
 
   // Check sigma8 (check skipped if sigma8_check = 0);
   const double sigma8= sqrt(sigma8_sq);
-  if(sigma8_check > 0.0)
+  if(sigma8_check > 0.0) {
     assert_double(sigma8, sigma8_check, 0.01);
 
-  msg_printf(info, "sigma8= %f; expected= %f; relative err=%.2e; OK.\n",
+    msg_printf(msg_info, "sigma8= %f; expected= %f; relative err=%.2e; OK.\n",
 	     sigma8, sigma8_check, fabs(sigma8 - sigma8_check)/sigma8_check);
+  }
+  else
+    msg_printf(msg_info, "sigma8= %f\n", sigma8);
   
   // Allocate ps->log_k, ps->log_P and fill the arrays
   double* const v_logk= malloc(2*nlines*sizeof(double)); assert(v_logk);

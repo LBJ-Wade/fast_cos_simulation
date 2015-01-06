@@ -3,6 +3,7 @@
 #include <gsl/gsl_rng.h>
 #include "msg.h"
 #include "mem.h"
+#include "config.h"
 #include "cosmology.h"
 #include "power.h"
 #include "particle.h"
@@ -35,11 +36,14 @@ void lpt_init(const int nc_, const double boxsize_, Mem* mem)
 {
   boxsize= boxsize_;
   nc= nc_;
-  
-  if(mem == 0)
-    mem= mem_init("mem_lpt");
 
-  mem_use_from_zero(mem, 0);
+  msg_printf(msg_debug, "lpt_init(nc= %d, boxsize= %.1lf)\n", nc, boxsize);
+  
+  //if(mem == 0)
+  //  mem= mem_init("mem_lpt");
+
+  if(mem != NULL)
+    mem_use_from_zero(mem, 0);
   
   for(int i=0; i<3; i++)
     fft_psi[i]= fft_alloc("Psi_i", nc, mem, 0);
@@ -114,8 +118,8 @@ void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
 {
   // Generates 1LPT (Zeldovich) displacements, Psi_k
   // from N-GenIC by Volker Springel
-  msg_printf(verbose, "Generating delta_k...\n");
-  msg_printf(info, "Random Seed = %lu\n", seed);
+  msg_printf(msg_verbose, "Generating delta_k...\n");
+  msg_printf(msg_info, "Random Seed = %lu\n", seed);
 
   for(int i=0; i<3; i++) assert(fft_psi[i]);
   
@@ -278,7 +282,7 @@ void lpt_compute_psi2_k(void)
   //   Prerequest Psi_k  in fft_psi[]->fk
   //   Result     Psi2_k in fft_psi2[]->fk (Fourier space)
   
-  msg_printf(verbose, "Computing 2LPT displacement fields...\n");
+  msg_printf(msg_verbose, "Computing 2LPT displacement fields...\n");
 
   const size_t nckz= nc/2 + 1;
   const double dk= 2.0*M_PI/boxsize;
@@ -344,7 +348,7 @@ void lpt_compute_psi2_k(void)
   // div.Psi(2) = Sum_{i<j} [ Psi_i,j Psi_i,j - Psi_i,i Psi_j,j ]
   // in realspace
 
-  msg_printf(verbose, "Fourier transforming displacement gradient...");
+  msg_printf(msg_verbose, "Fourier transforming displacement gradient...\n");
   for(int i=0; i<6; i++) 
     fft_execute_inverse(fft_psi_ij[i]);
 
@@ -368,7 +372,7 @@ void lpt_compute_psi2_k(void)
   }
 
   // Solve Poisson eq. for div.Psi(2) in Fourier space
-  msg_printf(verbose, "Fourier transforming second order source...\n");
+  msg_printf(msg_verbose, "Fourier transforming second order source...\n");
   
   fft_execute_forward(fft_div_psi2);
   complex_t* div_psi2_k= fft_div_psi2->fk;
@@ -416,14 +420,20 @@ void lpt_compute_psi2_k(void)
 void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 			   const double a, Particles* particles)
 {
-  
+  assert(particles);
+  size_t np_local= local_nx*nc*nc;
+  if(particles->np_allocated < np_local)
+    msg_abort("Error: Not enough particles allocated to put initial particles\n"
+	      "np_allocated= %lu < required %lu\n",
+	      particles->np_allocated, np_local);
+ 
   lpt_generate_psi_k(seed, ps);
   lpt_compute_psi2_k();
 
   // Prerequest: psi_k in fft_psi[]->fk and psi2_k in fft_psi2[]->fk
   
   // Convert Psi_k Psi2_k to realspace
-  msg_printf(verbose, "Fourier transforming 2LPT displacements");
+  msg_printf(msg_verbose, "Fourier transforming 2LPT displacements\n");
   for(int i=0; i<3; i++) {
     fft_execute_inverse(fft_psi[i]);
     fft_execute_inverse(fft_psi2[i]);
@@ -433,7 +443,7 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
   float_t* psi2[]= {fft_psi2[0]->fx, fft_psi2[1]->fx, fft_psi2[2]->fx};
   
 
-  msg_printf(verbose, "Setting particle grid and displacements\n");
+  msg_printf(msg_verbose, "Setting particle grid and displacements\n");
 
   const size_t nczr= 2*(nc/2 + 1);
   const float_t dx= boxsize/nc;
@@ -471,9 +481,9 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
    }
   }
 
-  msg_printf(verbose, "2LPT displacements calculated.\n");
+  msg_printf(msg_verbose, "2LPT displacements calculated.\n");
   
-  particles->np_local= local_nx*nc*nc;
+  particles->np_local= np_local; 
   particles->a_x= a;
   particles->a_v= 0.0;
 }

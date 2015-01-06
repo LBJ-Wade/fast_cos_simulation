@@ -39,7 +39,7 @@ void msg_abort(char const * const fmt, ...)
 {
   va_list argp;
 
-  if(log_level <= fatal) {
+  if(log_level <= msg_fatal) {
     va_start(argp, fmt);
     vfprintf(stdout, fmt, argp);
     va_end(argp);
