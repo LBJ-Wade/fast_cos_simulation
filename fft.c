@@ -8,15 +8,6 @@
 #include "util.h"
 #include "fft.h"
 
-
-void fft_free(FFT* const fft)
-{
-  if(fft->allocated == true) {
-    free(fft->fx);
-    fft->fx= NULL; fft->fk= NULL;
-  }
-}
-
 #ifdef MPI
 
 FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
@@ -163,8 +154,29 @@ void fft_execute_inverse(FFT* const fft)
 
 #endif
 
+// No change whehter with or without MPI
+
+void fft_free(FFT* const fft)
+{
+#ifdef DOUBLEPRECISION
+  fftw_destroy_plan(fft->forward_plan);
+  fftw_destroy_plan(fft->inverse_plan);
+#else
+  fftwf_destroy_plan(fft->forward_plan);
+  fftwf_destroy_plan(fft->inverse_plan);
+#endif
+  
+  if(fft->allocated == true) {
+    free(fft->fx);
+    fft->fx= NULL; fft->fk= NULL;
+  }
+}
+
 // Quote
 // "it is probably better for you to simply create multiple plans
 //  (creating a new plan is quick once one exists for a given size)
 // -- FFTW3 Manual for version 3.3.3 section 4.6
+
+// "To prevent memory leaks, you must still call fftw_destroy_plan
+//  before executing fftw_cleanup."
 
