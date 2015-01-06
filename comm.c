@@ -1,15 +1,23 @@
 //
-// Taking care of MPI communications
+// Taking care all MPI calls (this can be for single processor compiler)
 //
 
 #include <assert.h>
+
+#ifdef MPI
 #include <mpi.h>
+#else
+#include <stdlib.h>
+#endif
 
 static int this_node= -1;
 static int parallel_level= 0;
-  // 1: MPI_THREAD_SINGLE, only one thread will execute.
+  // 0: no MPI
+  // 1: MPI_THREAD_SINGLE, only one thread per MPI node
   // 2: MPI_THREAD_FUNNELED, only the thread that called MPI_Init_thread will
   //    make MPI calls.
+
+#ifdef MPI
 
 void comm_mpi_init(int* p_argc, char*** p_argv)
 {
@@ -34,10 +42,11 @@ void comm_mpi_finalise(void)
   MPI_Finalize();
 }
 
-int comm_this_node(void)
+void comm_abort(void)
 {
-  return this_node;
+  MPI_Abort(MPI_COMM_WORLD, 1);
 }
+
 
 void comm_bcast_int(int* p_int, int count)
 {
@@ -49,4 +58,38 @@ void comm_bcast_double(double* p_double, int count)
   MPI_Bcast(p_double, count, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }
 
+#else
 
+//
+// Without MPI (basically doing nothing)
+//
+void comm_mpi_init(int* p_argc, char*** p_argv)
+{
+  this_node= 0;
+  parallel_level= 0;
+}
+
+void comm_mpi_finalise(void)
+{
+}
+
+void comm_abort(void)
+{
+  abort();
+}
+
+
+void comm_bcast_int(int* p_int, int count)
+{
+}
+
+void comm_bcast_double(double* p_double, int count)
+{
+}
+
+#endif
+
+int comm_this_node(void)
+{
+  return this_node;
+}

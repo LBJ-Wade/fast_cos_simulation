@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <mpi.h>
 #include "comm.h"
 #include "msg.h"
 

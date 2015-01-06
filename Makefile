@@ -6,7 +6,8 @@
 # Compile options
 #
 
-#OPT += -DDOUBLEPRECISION
+#OPT+= -DDOUBLEPRECISION
+#OPT += -DMPI
 
 #
 # Compile configurations
@@ -15,7 +16,12 @@
 # Define OPENMP to enable MPI+OpenMP hybrid parallelization
 # OPENMP  = -fopenmp # -openmp for Intel, -fopenmp for gcc, llvm doesn't support
 
-CC       = mpicc -std=c99 
+ifeq (,$(findstring -DMPI, $(OPT)))
+CC       = cc
+else
+CC       = mpicc -std=c99
+endif
+
 WOPT    ?= -Wall
 CFLAGS  := -O3 $(WOPT) $(OPENMP) $(OPT)
 LIBS    := -lm
@@ -37,19 +43,27 @@ all: $(EXEC)
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
 OBJS += lpt.o
 
+#
+# Linking libraries
+#
 LIBS += -llua -ldl 
 LIBS += -lgsl -lgslcblas
 
 ifeq (,$(findstring -DDOUBLEPRECISION, $(OPT)))
-  FFTWSUF=f
+  FFTWSUF=f    # Single precision FFTW
 endif
-LIBS += -lfftw3$(FFTWSUF)_mpi -lfftw3$(FFTWSUF)
+LIBS += -lfftw3$(FFTWSUF)
+
+ifeq (-DMPI,$(findstring -DMPI, $(OPT)))
+  LIBS += -lfftw3$(FFTWSUF)_mpi
+endif
 
 ifdef OPENMP
   LIBS += -lfftw3$(FFTWSUF)_omp
   #LIBS += -lfftw3$(FFTWSUF)_threads # for thread parallelization instead of omp
 endif
 
+# Compiling rule
 fs: $(OBJS)
 	$(CC) $(OBJS) $(LIBS) -o $@
 

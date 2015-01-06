@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <math.h>
-#include <mpi.h>
 #include "comm.h"
 #include "msg.h"
 
@@ -46,7 +45,7 @@ void msg_abort(char const * const fmt, ...)
     va_end(argp);
   }
 
-  MPI_Abort(MPI_COMM_WORLD, 1);
+  comm_abort();
 }
 
 void msg_assert_double(const char file[], const unsigned int line, const double x, const double x_expected, const double eps)

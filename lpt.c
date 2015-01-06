@@ -401,9 +401,9 @@ void lpt_compute_psi2_k(void)
 	  kvec[2] = -dk*(nc - iz);
 	
 	double kmag2= kvec[0]*kvec[0] + kvec[1]*kvec[1] + kvec[2]*kvec[2];
-	assert(kmag2 > 0); // *** Heavy assert. Remove later.
+	assert(kmag2 > 0); // !!! Heavy assert. Remove later.
 	    
-	// psi2_k = div.psi_k * k / (sqrt(-1) k^2)
+	// Psi(2)_k = div.Psi(2)_k * k / (sqrt(-1) k^2)
 	for(int i=0; i<3; i++) {
 	  psi2_k[i][index][0]=  div_psi2_k[index][1]*kvec[i]/kmag2;
 	  psi2_k[i][index][1]= -div_psi2_k[index][0]*kvec[i]/kmag2;
@@ -447,7 +447,7 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
   
   float_t x[3];
   for(size_t ix=0; ix<local_nx; ix++) {
-   x[0]= (local_ix0 + ix + 0.5f)*dx;
+   x[0]= (local_ix0 + ix + 0.5f)*dx; /// !!! should we have this 0.5?
    for(size_t iy=0; iy<nc; iy++) {
     x[1]= (iy + 0.5f)*dx;
     for(int iz=0; iz<nc; iz++) {
@@ -455,8 +455,9 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 
      size_t index= (ix*nc + iy)*nczr + iz;
      for(int i=0; i<3; i++) {
-       float_t dis=  psi[i][index]; // *** why no nmesh3_inv here?
+       float_t dis=  psi[i][index];
        float_t dis2= nmesh3_inv*psi2[i][index];
+       // psi2 had two inverse Fourier transofroms, giving additional nmesh3
        
        p->x[i]= x[i] + D1*dis + D2*dis2;
        p->dx1[i]= dis;              // 1LPT extrapolated to a=1
