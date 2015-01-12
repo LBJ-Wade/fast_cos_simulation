@@ -454,6 +454,10 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 
   const float_t D1= cosmology_D_growth(a);
   const float_t D2= cosmology_D2_growth(a, D1);
+
+  msg_printf(msg_verbose, "LPT growth factor for a=%e: D1= %e, D2= %e\n",
+	     a, D1, D2);
+  
   
   float_t x[3];
   for(size_t ix=0; ix<local_nx; ix++) {

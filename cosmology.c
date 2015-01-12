@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
+#include "msg.h"
 #include "cosmology.h"
 
 static double omega_m0;
@@ -25,18 +26,25 @@ double cosmology_D_growth(const double a)
 {
   // Linear growth factor D
   assert(growth_normalisation > 0.0); // initialised?
+
+  if(a == 0.0) return 0.0;
+  
   return growth_normalisation*growth_unnormalised(a);
 }
 
 double cosmology_D2_growth(const double a, const double D)
 {
   // 2nd-order growth factor D2
+  if(a == 0.0) return 0.0;
+  
   return -3.0/7.0*D*D*pow(cosmology_omega(a), -1.0/143.0);
 }
 
 double cosmology_f_growth_rate(const double a)
 {
   assert(growth_normalisation > 0.0);
+
+  if(a == 0.0) return 1.0;
   
   // Linear growth rate f=dlnD/dlna
   const double d_un= growth_unnormalised(a);
@@ -51,6 +59,12 @@ void cosmology_growth(const double a,
 {
   assert(growth_normalisation > 0.0);
   // Both linear growth factor D(a) and growth rate f=dlnD/dlna
+
+  if(a == 0.0) {
+    *D_result= 0.0;
+    *f_result= 1.0;
+    return;
+  }
   
   const double d_un= growth_unnormalised(a);
   const double hf= cosmology_hubble_function(a);
