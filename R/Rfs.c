@@ -16,22 +16,83 @@ static Particles* particles= NULL;
 static int nc;
 static float_t boxsize;
 
-void rfs_init(void)
+void rfs_init(double* omega_m0)
 {
   comm_mpi_init(0,0);
   msg_set_loglevel(msg_debug);
 
-  const double omega_m0= 0.273;
-  cosmology_init(omega_m0);
+  cosmology_init(*omega_m0);
 }
   
   
-void rfs_read_powerspectrum(char** filename)
-{
-  //printf("-%s-\n", *filename);
+/* void rfs_read_powerspectrum(char** filename) */
+/* { */
+/*   //printf("-%s-\n", *filename); */
 
+/*   if(ps) power_free(ps); */
+/*   ps= power_alloc(*filename, 0); */
+/* } */
+
+SEXP rfs_read_powerspectrum(SEXP filename)
+{
+  int n= length(filename);
+  if(n == 0) {
+    error("Error: filename not given to rfs_read_powerspectrum\n");
+    return R_NilValue;
+  }
+  else if(n > 1) {
+    warning("Warning: "
+	    "only the first filename is used in rfs_read_powerspectrum");
+  }
+  char const * const c_str= CHAR(STRING_ELT(filename, 0));
+  
   if(ps) power_free(ps);
-  ps= power_alloc(*filename, 0);
+  ps= power_alloc(c_str, 0);
+
+  // return a copy of power spectrum data as a data.frame
+  const int ncol= 2; // k P(k)
+  const int nrow= ps->n;
+
+  SEXP list, col_names, row_names;
+  PROTECT(list = allocVector(VECSXP, ncol));
+  PROTECT(col_names = allocVector(STRSXP, ncol));
+  PROTECT(row_names = allocVector(STRSXP, nrow));
+  
+  // column names
+  SET_STRING_ELT(col_names, 0, mkChar("k"));
+  SET_STRING_ELT(col_names, 1, mkChar("P"));
+  setAttrib(list, R_NamesSymbol, col_names);
+
+  // row names 1,2,3, ...
+  char rname[20];
+  for(int i=0; i<nrow; i++) {
+    sprintf(rname, "%d", i+1);
+    SET_STRING_ELT(row_names, i, mkChar(rname));
+  }
+  setAttrib(list, R_RowNamesSymbol, row_names);
+    
+  // class=data.frame
+  setAttrib(list, R_ClassSymbol, ScalarString(mkChar("data.frame")));
+  
+
+  SEXP r_k,r_P;
+  PROTECT(r_k = allocVector(REALSXP, nrow));
+  PROTECT(r_P = allocVector(REALSXP, nrow));
+
+  double* const k= REAL(r_k);
+  double* const p= REAL(r_P);
+
+  for(int i=0; i<nrow; i++) {
+    k[i]= exp(ps->log_k[i]);
+    p[i]= exp(ps->log_P[i]);
+  }
+
+  // set the vectors in list$x <- x ...
+  SET_VECTOR_ELT(list, 0, r_k);
+  SET_VECTOR_ELT(list, 1, r_P);
+
+  UNPROTECT(5);
+  return list;
 }
 
 void rfs_lpt_init(int* nc_, double* boxsize_)
@@ -149,6 +210,9 @@ SEXP rfs_particles_in_cuboid(SEXP cuboid)
   double const * const arg= REAL(cuboid);
   if(n == 0)
     ;
+  else if(n == 1) {
+    right[2]= arg[0];
+  }
   else if(n == 2) {
     left[2]= arg[0];
     right[2]= arg[1];
@@ -246,3 +310,14 @@ SEXP rfs_particles_in_cuboid(SEXP cuboid)
   UNPROTECT(7);
   return list;
 }
+
+SEXP rfs_particles(SEXP arg)
+{
+  if(isInteger(arg))
+    return rfs_particles_with_id(arg);
+  else if(isReal(arg))
+    return rfs_particles_in_cuboid(arg);
+
+  return R_NilValue;
+}
+   
