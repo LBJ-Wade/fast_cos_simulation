@@ -1,8 +1,8 @@
 #
 # Rfs: R library
 #   
+.SECONDARY:
 
-VPATH= ../
 #
 # Compile options
 #
@@ -40,6 +40,7 @@ all: $(EXEC)
 OBJS += comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
 OBJS += lpt.o
 
+
 #
 # Linking libraries
 #
@@ -61,9 +62,12 @@ endif
 Rfs.so: Rfs.c $(OBJS)
 	MAKEFLAGS="CFLAGS=-I../" R CMD SHLIB Rfs.c $(OBJS) $(LIBS)
 
+%.c: ../%.c
+	ln -s $< $@
+
 .PHONY: clean run dependence
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(EXEC) $(OBJS) Rfs.o
 
 dependence:
 	gcc -MM -MG *.c
