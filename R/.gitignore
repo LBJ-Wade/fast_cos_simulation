@@ -1,4 +1,13 @@
 .Rdata
 .Rhistory
+comm.c
+msg.c
+power.c
+cosmology.c
+mem.c
+util.c
+fft.c
+config.c
+lpt.c
 camb_matterpower.dat
 Rfs.so
