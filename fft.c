@@ -95,7 +95,7 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 {
   FFT* const fft= malloc(sizeof(FFT)); assert(fft);
   fft->nc= nc;
-  fft->local_nx= 0;
+  fft->local_nx= nc;
   fft->local_ix0= 0;
 
   const size_t nckz= nc/2 + 1;
