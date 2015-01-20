@@ -461,11 +461,11 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
   
   float_t x[3];
   for(size_t ix=0; ix<local_nx; ix++) {
-   x[0]= (local_ix0 + ix + 0.5f)*dx; /// !!! should we have this 0.5?
+   x[0]= (local_ix0 + ix)*dx;
    for(size_t iy=0; iy<nc; iy++) {
-    x[1]= (iy + 0.5f)*dx;
+    x[1]= iy*dx;
     for(int iz=0; iz<nc; iz++) {
-     x[2]= (iz + 0.5f)*dx;
+     x[2]= iz*dx;
 
      size_t index= (ix*nc + iy)*nczr + iz;
      for(int i=0; i<3; i++) {
