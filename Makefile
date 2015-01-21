@@ -41,7 +41,7 @@ EXEC = fs libfs.a
 all: $(EXEC)
 
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
-OBJS += lpt.o
+OBJS += lpt.o pm.o
 
 #
 # Linking libraries
