@@ -2,6 +2,7 @@
 #define FFT_H 1
 
 #include <stdbool.h>
+#include "mem.h"
 
 typedef struct {
   char*       name;
