@@ -1,4 +1,8 @@
-// FFTW
+///
+/// \file  fft.c
+/// \brief interface for FFTW
+///
+
 #include <stdlib.h>
 #include <assert.h>
 #include <fftw3-mpi.h>

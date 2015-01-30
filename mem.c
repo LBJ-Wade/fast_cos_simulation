@@ -1,3 +1,8 @@
+///
+/// \file  mem.c
+/// \brief Memory (RAM) management
+///
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>

@@ -1,6 +1,7 @@
-//
-// Taking care all MPI calls (this can be for single processor compiler)
-//
+///
+/// \file  comm.c
+/// \brief Functions for MPI communications
+///
 
 #include <assert.h>
 
@@ -18,6 +19,11 @@ static int parallel_level= 0;
   //    make MPI calls.
 
 #ifdef MPI
+
+///
+/// Initialisation
+/// abc
+///
 
 void comm_mpi_init(int* p_argc, char*** p_argv)
 {
@@ -61,8 +67,9 @@ void comm_bcast_double(double* p_double, int count)
 #else
 
 //
-// Without MPI (basically doing nothing)
+// Serial version
 //
+
 void comm_mpi_init(int* p_argc, char*** p_argv)
 {
   this_node= 0;
@@ -88,6 +95,15 @@ void comm_bcast_double(double* p_double, int count)
 }
 
 #endif
+
+//
+// Function usable for both serial and MPI version
+//
+
+///
+/// Initialisation
+/// abc
+///
 
 int comm_this_node(void)
 {

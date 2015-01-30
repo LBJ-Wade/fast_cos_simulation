@@ -1,7 +1,11 @@
+///
+/// \file  msg.c
+/// \brief Prints message to standard output
+///
+
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <math.h>
 #include "comm.h"
 #include "msg.h"
 

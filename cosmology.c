@@ -1,7 +1,9 @@
-//
-// Analytical functions in cosmology, e.g., linear growth rate
-//  * Flat Lambda CDM assumed
-//
+///
+/// \file  cosmology.c
+/// \brief Analytical functions in cosmology, e.g. linear growth rate
+///
+/// * Flat Lambda CDM assumed
+///
 
 #include <math.h>
 #include <assert.h>

@@ -1,3 +1,8 @@
+///
+/// \file  power.c
+/// \brief Input power spectrum for initial condition
+///
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

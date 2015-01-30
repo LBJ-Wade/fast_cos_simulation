@@ -1,3 +1,8 @@
+///
+/// \file  particle.h
+/// \brief definition of particle & particles data structure
+///
+
 #ifndef PARTICLE_H
 #define PARTICLE_H 1
 

@@ -1,3 +1,8 @@
+///
+/// \file  util.c
+/// \brief non-cosmology utilities
+///
+
 #include <stdlib.h>
 #include "util.h"
 

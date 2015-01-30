@@ -1,3 +1,10 @@
+///
+/// \file  lpt.c
+/// \brief Lagrangian Perturbation Theory
+///
+/// Generates random Gaussian pertubation using 2LPT
+///
+
 #include <math.h>
 #include <assert.h>
 #include <gsl/gsl_rng.h>

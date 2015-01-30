@@ -1,3 +1,8 @@
+///
+/// \file  config.h
+/// \brief definitions of basic variables
+///
+
 #ifndef CONFIG_H
 #define CONFIG_H 1
 
