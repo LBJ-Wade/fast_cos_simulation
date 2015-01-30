@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
 #include "comm.h"
 #include "msg.h"
 

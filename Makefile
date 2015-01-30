@@ -7,7 +7,7 @@
 #
 
 #OPT+= -DDOUBLEPRECISION
-#OPT += -DMPI
+OPT += -DMPI
 
 #
 # Compile configurations
@@ -50,7 +50,8 @@ LIBS += -llua -ldl
 LIBS += -lgsl -lgslcblas
 
 ifeq (,$(findstring -DDOUBLEPRECISION, $(OPT)))
-  FFTWSUF=f    # Single precision FFTW
+  # Single precision FFTW
+  FFTWSUF=f
 endif
 LIBS += -lfftw3$(FFTWSUF)
 

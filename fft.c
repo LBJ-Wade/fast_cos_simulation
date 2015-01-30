@@ -12,6 +12,15 @@
 #include "util.h"
 #include "fft.h"
 
+// FFTW() adds fftw_ or fftwf_ prefix depending on DOUBLEPRECISION
+
+#ifdef DOUBLEPRECISION
+#define FFTW(f) fftw_ ## f
+#else
+#define FFTW(f) fftwf_ ## f
+#endif
+
+
 #ifdef MPI
 
 FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
@@ -26,13 +35,8 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
   msg_printf(msg_debug, "fft_alloc nc= %d\n", nc);
 
   ptrdiff_t ncomplex=
-#ifdef DOUBLEPRECISION
-    fftw_mpi_local_size_3d(nc, nc, nc, MPI_COMM_WORLD,
-			   &fft->local_nx, &fft->local_ix0);    
-#else
-    fftwf_mpi_local_size_3d(nc, nc, nc, MPI_COMM_WORLD,
-			    &fft->local_nx, &fft->local_ix0);
-#endif
+    FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,
+			    &fft->local_nx, &fft->local_ix0);    
 
   size_t size= sizeof(complex_t)*ncomplex;
   assert(fft->local_nx >= 0); assert(fft->local_ix0 >= 0);
@@ -47,18 +51,11 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
   fft->ncomplex= ncomplex;
   fft->fx= mem->buf; fft->fk= mem->buf;
 
-#ifdef DOUBLEPRECISION  
-  fft->forward_plan= fftw_mpi_plan_dft_r2c_3d(nc, nc, nc, fft->fx, fft->fk,
+  fft->forward_plan= FFTW(mpi_plan_dft_r2c_3d)(nc, nc, nc, fft->fx, fft->fk,
 				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
-  fft->inverse_plan= fftw_mpi_plan_dft_c2r_3d(nc, nc, nc, fft->fk, fft->fx,
+  fft->inverse_plan= FFTW(mpi_plan_dft_c2r_3d)(nc, nc, nc, fft->fk,fft->fx,
 				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
-#else
-  fft->forward_plan= fftwf_mpi_plan_dft_r2c_3d(nc, nc, nc, fft->fx, fft->fk,
-				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
-  fft->inverse_plan= fftwf_mpi_plan_dft_c2r_3d(nc, nc, nc, fft->fk, fft->fx,
-				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
-#endif  
-  
+
   // ToDo: FFTW_MPI_TRANSPOSED_IN/FFTW_MPI_TRANSPOSED_OUT would be faster
 
   return fft;
@@ -66,29 +63,17 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 
 void fft_finalize(void)
 {
-#ifdef DOUBLEPRECISION
-  fftw_mpi_cleanup();
-#else
-  fftwf_mpi_cleanup();
-#endif
+  FFTW(mpi_cleanup)();
 }
 
 void fft_execute_forward(FFT* const fft)
 {
-#ifdef DOUBLEPRECISION
-  fftw_mpi_execute_dft_r2c(fft->forward_plan, fft->fx, fft->fk);
-#else
-  fftwf_mpi_execute_dft_r2c(fft->forward_plan, fft->fx, fft->fk);
-#endif
+  FFTW(mpi_execute_dft_r2c)(fft->forward_plan, fft->fx, fft->fk);
 }
 
 void fft_execute_inverse(FFT* const fft)
 {
-#ifdef DOUBLEPRECISION
-  fftw_mpi_execute_dft_c2r(fft->inverse_plan, fft->fk, fft->fx);
-#else
-  fftwf_mpi_execute_dft_c2r(fft->inverse_plan, fft->fk, fft->fx);
-#endif
+  FFTW(mpi_execute_dft_c2r)(fft->inverse_plan, fft->fk, fft->fx);
 }
 
 
@@ -119,46 +104,27 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
   // serial version are mainly used for interactive jobs
   // small overhead with FFTW_ESTIMATE is probablly better than FFTW_MEASURE
   
-#ifdef DOUBLEPRECISION  
-  fft->forward_plan= fftw_plan_dft_r2c_3d(nc, nc, nc, fft->fx, fft->fk,
-				          flag0  | flags);
-  fft->inverse_plan= fftw_plan_dft_c2r_3d(nc, nc, nc, fft->fk, fft->fx,
-					      flag0 | flags);
-#else
-  fft->forward_plan= fftwf_plan_dft_r2c_3d(nc, nc, nc, fft->fx, fft->fk,
-					       flag0 | flags);
-  fft->inverse_plan= fftwf_plan_dft_c2r_3d(nc, nc, nc, fft->fk, fft->fx,
-					       flag0 | flags);
-#endif  
+  fft->forward_plan= FFTW(plan_dft_r2c_3d)(nc, nc, nc, fft->fx, fft->fk,
+					   flag0  | flags);
+  fft->inverse_plan= FFTW(plan_dft_c2r_3d)(nc, nc, nc, fft->fk, fft->fx,
+					   flag0 | flags);
 
   return fft;
 }
 
 void fft_finalize(void)
 {
-#ifdef DOUBLEPRECISION
-  fftw_cleanup();
-#else
-  fftwf_cleanup();
-#endif
+  FFTW(cleanup)();
 }
 
 void fft_execute_forward(FFT* const fft)
 {
-#ifdef DOUBLEPRECISION
-  fftw_execute_dft_r2c(fft->forward_plan, fft->fx, fft->fk);
-#else
-  fftwf_execute_dft_r2c(fft->forward_plan, fft->fx, fft->fk);
-#endif
+  FFTW(execute_dft_r2c)(fft->forward_plan, fft->fx, fft->fk);
 }
 
 void fft_execute_inverse(FFT* const fft)
 {
-#ifdef DOUBLEPRECISION
-  fftw_execute_dft_c2r(fft->inverse_plan, fft->fk, fft->fx);
-#else
-  fftwf_execute_dft_c2r(fft->inverse_plan, fft->fk, fft->fx);
-#endif
+  FFTW(execute_dft_c2r)(fft->inverse_plan, fft->fk, fft->fx);
 }
 
 #endif
@@ -167,13 +133,8 @@ void fft_execute_inverse(FFT* const fft)
 
 void fft_free(FFT* const fft)
 {
-#ifdef DOUBLEPRECISION
-  fftw_destroy_plan(fft->forward_plan);
-  fftw_destroy_plan(fft->inverse_plan);
-#else
-  fftwf_destroy_plan(fft->forward_plan);
-  fftwf_destroy_plan(fft->inverse_plan);
-#endif
+  FFTW(destroy_plan)(fft->forward_plan);
+  FFTW(destroy_plan)(fft->inverse_plan);
   
   if(fft->allocated == true) {
     free(fft->fx);
