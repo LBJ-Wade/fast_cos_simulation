@@ -24,11 +24,18 @@ void cosmology_init(const double omega_m0_)
   growth_normalisation= 1.0/growth_unnormalised(1.0); // D_growth=1 at a=1
 }
 
+void cosmology_check(void)
+{
+  // Check if this module is initilised
+  if(growth_normalisation == 0.0)
+    msg_abort("Error: cosmology module not initialised.\n");
+  assert(growth_normalisation > 0.0);
+}
+    
 double cosmology_D_growth(const double a)
 {
+  cosmology_check();
   // Linear growth factor D
-  assert(growth_normalisation > 0.0); // initialised?
-
   if(a == 0.0) return 0.0;
   
   return growth_normalisation*growth_unnormalised(a);
@@ -44,7 +51,7 @@ double cosmology_D2_growth(const double a, const double D)
 
 double cosmology_f_growth_rate(const double a)
 {
-  assert(growth_normalisation > 0.0);
+  cosmology_check();
 
   if(a == 0.0) return 1.0;
   
@@ -59,7 +66,7 @@ double cosmology_f_growth_rate(const double a)
 void cosmology_growth(const double a,
 		      double* const D_result, double* const f_result)
 {
-  assert(growth_normalisation > 0.0);
+  cosmology_check();
   // Both linear growth factor D(a) and growth rate f=dlnD/dlna
 
   if(a == 0.0) {

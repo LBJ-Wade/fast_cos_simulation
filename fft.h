@@ -2,6 +2,7 @@
 #define FFT_H 1
 
 #include <stdbool.h>
+#include "config.h"
 #include "mem.h"
 
 typedef struct {
@@ -15,10 +16,12 @@ typedef struct {
   bool        allocated;
 } FFT;
 
+size_t fft_mem_size(const int nc);
 FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags);
 void fft_execute_forward(FFT* const fft);
 void fft_execute_inverse(FFT* const fft);
 void fft_free(FFT* const fft);
 void fft_finalize(void);
+void* fft_malloc(size_t size);
 
 #endif

@@ -1,3 +1,4 @@
+*.bak
 doxygen.log
 html
 latex

@@ -12,6 +12,7 @@
 #endif
 
 static int this_node= -1;
+static int n_nodes= 0;
 static int parallel_level= 0;
   // 0: no MPI
   // 1: MPI_THREAD_SINGLE, only one thread per MPI node
@@ -41,6 +42,7 @@ void comm_mpi_init(int* p_argc, char*** p_argv)
   
 
   MPI_Comm_rank(MPI_COMM_WORLD, &this_node);
+  MPI_Comm_size(MPI_COMM_WORLD, &n_nodes);
 }
 
 void comm_mpi_finalise(void)
@@ -108,4 +110,9 @@ void comm_bcast_double(double* p_double, int count)
 int comm_this_node(void)
 {
   return this_node;
+}
+
+int comm_n_nodes(void)
+{
+  return n_nodes;
 }

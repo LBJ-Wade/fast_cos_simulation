@@ -27,8 +27,8 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 {
   // Allocates memory for FFT real and Fourier space and initilise fftw_plans
 
-  msg_printf(msg_debug, "fft_alloc(%s, nc=%d)", name, nc);
-  msg_printf(msg_debug, "malloc(%lu)\n", sizeof(FFT));
+  msg_printf(msg_debug, "fft_alloc(%s, nc=%d)\n", name, nc);
+  //msg_printf(msg_debug, "malloc(%lu)\n", sizeof(FFT));
   FFT* const fft= malloc(sizeof(FFT)); assert(fft);
   fft->nc= nc;
 
@@ -61,6 +61,16 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
   return fft;
 }
 
+size_t fft_mem_size(const int nc)
+{
+  // return the memory size necessary for the 3D FFT
+  ptrdiff_t local_nx, local_ix0;
+  ptrdiff_t ncomplex=
+    FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD, &local_nx, &local_ix0);
+
+  return size_align(sizeof(complex_t)*ncomplex);
+}
+
 void fft_finalize(void)
 {
   FFTW(mpi_cleanup)();
@@ -78,7 +88,7 @@ void fft_execute_inverse(FFT* const fft)
 
 
 #else
-// No MPI version
+// Serial version
 
 FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 {
@@ -140,6 +150,11 @@ void fft_free(FFT* const fft)
     free(fft->fx);
     fft->fx= NULL; fft->fk= NULL;
   }
+}
+
+void* fft_malloc(size_t size)
+{
+  return FFTW(malloc)(size);
 }
 
 // Quote

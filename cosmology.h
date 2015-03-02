@@ -2,6 +2,7 @@
 #define COSMOLOGY_H 1
 
 void   cosmology_init(const double omega_m0);
+void cosmology_check(void);
 double cosmology_D_growth(const double a);
 double cosmology_D2_growth(const double a, const double D);
 void   cosmology_growth(const double a, double* const D, double* const f);

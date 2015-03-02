@@ -11,6 +11,13 @@
 #include "msg.h"
 #include "util.h"
 #include "mem.h"
+#include "fft.h"
+
+// step 1: Mem* mem= mem_init("name");
+// step 2: mem_reserve(mem, size1, "usage1");
+//       : mem_reserve(mem, size2, "usage2");
+// step 3: mem_alloc_reserved(mem);
+//
 
 Mem* mem_init(const char name[])
 {
@@ -21,6 +28,8 @@ Mem* mem_init(const char name[])
 
   mem->name= util_new_str(name);
 
+  msg_printf(msg_verbose, "Memory %s initilised.\n", name);
+  
   return mem;
 }
 
@@ -36,8 +45,8 @@ void mem_reserve(Mem* const mem, size_t size, char const * const msg)
     size += ALGN - (size % ALGN);
   assert(size % ALGN == 0);
   
-  if(size > mem->size_alloc)
-    mem->size_alloc= size;
+  if(size > mem->size_using)
+    mem->size_using= size;   // this is the amount going to be allocated
 
   if(msg)
     msg_printf(msg_info, "%s requested %lu MB for %s\n",
@@ -48,11 +57,7 @@ void mem_alloc_reserved(Mem* const mem)
 {
   if(mem->buf) free(mem->buf);
 
-#ifdef DOUBLEPRECISION
-  mem->buf= fftw_malloc(mem->size_alloc);
-#else
-  mem->buf= fftwf_malloc(mem->size_alloc);
-#endif
+  mem->buf= fft_malloc(mem->size_using);
   
   if(mem->buf == 0)
     msg_abort("Error: Unable to allocate %lu MB for %s\n",
@@ -60,6 +65,9 @@ void mem_alloc_reserved(Mem* const mem)
   else
     msg_printf(msg_info, "%lu MB allocated for mem %s\n",
 	       mem->size_alloc/(1024*1024), mem->name);
+
+  mem->size_alloc= mem->size_using;
+  mem->size_using= 0;
 }
 
 Mem* mem_alloc(const char name[], const size_t size)
@@ -75,7 +83,7 @@ Mem* mem_alloc(const char name[], const size_t size)
 void* mem_use_from_zero(Mem* const mem, size_t size)
 {
   size= size_align(size);
-  
+
   if(size > mem->size_alloc)
     msg_abort("Error: Unable to use $lu MB in Mem %s (only %lu MB allocated)\n",
 	      mbytes(size), mem->name, mbytes(mem->size_alloc));
@@ -87,6 +95,10 @@ void* mem_use_from_zero(Mem* const mem, size_t size)
 void* mem_use_remaining(Mem* const mem, size_t size)
 {
   size= size_align(size);
+
+  //printf("debug %lu %lu\n", mem->size_using, mem->size_alloc);
+  msg_printf(msg_verbose, "using %lu in memory %s\n", size, mem->name);
+
   
   if(size + mem->size_using > mem->size_alloc)
     msg_abort("Error: Unable to use %lu MB in Mem %s; %lu MB allocated, "

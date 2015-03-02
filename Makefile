@@ -37,7 +37,7 @@ DIR_PATH = $(FFTW3_DIR) $(GSL_DIR) $(LUA_DIR)
 CFLAGS += $(foreach dir, $(DIR_PATH), -I$(dir)/include)
 LIBS   += $(foreach dir, $(DIR_PATH), -L$(dir)/lib)
 
-EXEC = fs libfs.a doc
+EXEC = fs libfs.a # doc
 all: $(EXEC)
 
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
