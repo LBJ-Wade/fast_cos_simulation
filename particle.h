@@ -20,9 +20,11 @@ typedef struct {
 typedef struct {
   Particle* p;
   double a_x, a_v;
+  float3* force;
 
   size_t np_local, np_allocated;
   uint64_t np_total;
+  double omega_m;
 } Particles;
 
 #endif

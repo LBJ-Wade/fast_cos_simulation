@@ -27,12 +27,12 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
 {
   // Allocates memory for FFT real and Fourier space and initilise fftw_plans
 
-  msg_printf(msg_debug, "fft_alloc(%s, nc=%d)\n", name, nc);
+  //msg_printf(msg_debug, "fft_alloc(%s, nc=%d)\n", name, nc);
   //msg_printf(msg_debug, "malloc(%lu)\n", sizeof(FFT));
   FFT* const fft= malloc(sizeof(FFT)); assert(fft);
   fft->nc= nc;
 
-  msg_printf(msg_debug, "fft_alloc nc= %d\n", nc);
+  //msg_printf(msg_debug, "fft_alloc nc= %d\n", nc);
 
   ptrdiff_t ncomplex=
     FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,

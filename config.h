@@ -17,6 +17,8 @@ typedef fftwf_complex complex_t;
 typedef float float_t;
 #endif
 
+typedef float_t float3[3];
+
 #ifndef M_PI
 #define M_PI        3.14159265358979323846264338327950288
 #endif
