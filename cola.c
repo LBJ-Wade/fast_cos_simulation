@@ -10,9 +10,9 @@
 #include "particle.h"
 #include "msg.h"
 #include "cola.h"
+#include "cosmology.h"
 
 static float Om= -1.0f;
-static const float subtractLPT= 1.0f;
 static const float nLPT= -2.5f;
 static const int fullT= 1; // velocity growth model
 
@@ -22,7 +22,6 @@ float growthD2(const float a);
 double Sphi(double ai, double af, double aRef);
 double Sq(double ai, double af, double aRef);
 float Qfactor(const float a);
-
 // Leap frog time integration
 
 void cola_kick(Particles* const particles, const float avel1)
@@ -35,14 +34,25 @@ void cola_kick(Particles* const particles, const float avel1)
   msg_printf(msg_info, "Kick %g -> %g\n", AI, avel1);
 
   const float Om143= pow(Om/(Om + (1 - Om)*A*A*A), 1.0/143.0);
-  const float dda= Sphi(AI, AF, A);
-  const float growth1=growthD(A);
-
+  //const float dda= Sphi(AI, AF, A);
+  //const float dda_new= Sphi_new(AI, AF, A);
+  //printf("Sphi(%e %e %e) -> %e\n", AI, AF, A, dda);
+  //const float growth1=growthD(A);
+  const float kick_factor= (pow(AF, nLPT) - pow(AI, nLPT))/
+                           (nLPT*pow(A, nLPT)*sqrt(Om/A+(1.0-Om)*A*A));
+  const float growth1= cosmology_D_growth(A);
+  //const float growth2= cosmology_D2_growth(A, growth1);
+  //fprintf(stderr, "%e %e %e\n", dda, kick_factor, fabs(dda-kick_factor)/dda);
+	
   msg_printf(msg_debug, "growth factor %g\n", growth1);
 
   const float q2=1.5*Om*growth1*growth1*(1.0 + 7.0/3.0*Om143);
   const float q1=1.5*Om*growth1;
 
+  //fprintf(stderr, "check %e %e\n", growth1*growth1*(1.0 + 7.0/3.0*Om143),
+  //growth2);
+
+  //fprintf(stderr, "new %e %e %e %e\n", A, q1, q2, dda);
 
   Particle* const P= particles->p;
   const int np= particles->np_local;
@@ -50,21 +60,24 @@ void cola_kick(Particles* const particles, const float avel1)
   
   // Kick using acceleration at a= A
   // Assume forces at a=A is in particles->force
-  fprintf(stderr, "loop.\n");
 #ifdef _OPENMP
   #pragma omp parallel for default(shared)
 #endif
   for(int i=0; i<np; i++) {
-    float ax= -1.5*Om*f[i][0] - subtractLPT*(P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
-    float ay= -1.5*Om*f[i][1] - subtractLPT*(P[i].dx1[1]*q1 + P[i].dx2[1]*q2);
-    float az= -1.5*Om*f[i][2] - subtractLPT*(P[i].dx1[2]*q1 + P[i].dx2[2]*q2);
+    float ax= -1.5*Om*f[i][0] - (P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
+    float ay= -1.5*Om*f[i][1] - (P[i].dx1[1]*q1 + P[i].dx2[1]*q2);
+    float az= -1.5*Om*f[i][2] - (P[i].dx1[2]*q1 + P[i].dx2[2]*q2);
 
-    P[i].v[0] += ax*dda;
-    P[i].v[1] += ay*dda;
-    P[i].v[2] += az*dda;
+    //fprintf(stderr, "%e %e %e\n", A, -1.5*Om*f[i][0],
+    //P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
+    // check here, I don't understand why not -1.5*Om*(f[i][0] - P[i].dx1[0]
+    // !!!
+    
+    P[i].v[0] += ax*kick_factor;
+    P[i].v[1] += ay*kick_factor;
+    P[i].v[2] += az*kick_factor;
   }
 
-  fprintf(stderr, "end kick");
   //velocity is now at a= avel1
   particles->a_v= avel1;
 }
@@ -93,11 +106,11 @@ void cola_drift(Particles* const particles, const float apos1)
 #endif
   for(int i=0; i<np; i++) {
     P[i].x[0] += P[i].v[0]*dyyy + 
-                 subtractLPT*(P[i].dx1[0]*da1 + P[i].dx2[0]*da2);
+                 (P[i].dx1[0]*da1 + P[i].dx2[0]*da2);
     P[i].x[1] += P[i].v[1]*dyyy +
-                 subtractLPT*(P[i].dx1[1]*da1 + P[i].dx2[1]*da2);
+                 (P[i].dx1[1]*da1 + P[i].dx2[1]*da2);
     P[i].x[2] += P[i].v[2]*dyyy + 
-                 subtractLPT*(P[i].dx1[2]*da1 + P[i].dx2[2]*da2);
+                 (P[i].dx1[2]*da1 + P[i].dx2[2]*da2);
   }
     
   particles->a_x= AF;
@@ -241,3 +254,4 @@ double Sphi(double ai, double af, double aRef) {
   
   return result;
 }
+

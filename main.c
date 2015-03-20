@@ -49,10 +49,13 @@ int main(int argc, char* argv[])
   cosmology_init(omega_m);
   lpt_init(nc, boxsize, mem1);
   lpt_set_displacements(seed, ps, a_init, particles);
+  particles->a_v= 1.0/nstep; // origial a_v
 
   for(int istep=1; istep<=nstep; istep++) {
     float_t a_vel= (istep + 0.5)/nstep;
     float_t a_pos= (istep + 1.0)/nstep;
+
+    // calc force here!!!
     cola_kick(particles, a_vel);
     cola_drift(particles, a_pos);
   }
