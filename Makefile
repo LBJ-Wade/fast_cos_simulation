@@ -8,6 +8,7 @@
 
 #OPT+= -DDOUBLEPRECISION
 OPT += -DMPI
+OPT += -DCHECK  # slow assersions
 
 #
 # Compile configurations

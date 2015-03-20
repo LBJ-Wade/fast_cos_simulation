@@ -12,7 +12,7 @@
 #include "cosmology.h"
 #include "lpt.h"
 #include "cola.h"
-
+#include "pm.h"
 
 Particles* alloc_particles(const int nc);
 
@@ -29,25 +29,33 @@ int main(int argc, char* argv[])
   int nc= 64;
   float boxsize= 1000.0f;
   const unsigned long seed= 100;
-  //int nc_pm= 3*nc;
   const double omega_m= 0.273;
 
   const int nstep= 10;
+
+  const int pm_factor= 3;
+  const int nc_pm= pm_factor*nc;
   const float a_init= 1.0/nstep;
 
   // Memory management
   Mem* mem1= mem_init("mem1"); // mainly for density
   mem_reserve(mem1, 9*fft_mem_size(nc), "LPT");
+  mem_reserve(mem1, fft_mem_size(nc_pm), "PM-density");
   mem_alloc_reserved(mem1);
+
+  Mem* mem2= mem_init("mem2");
+  mem_reserve(mem2, fft_mem_size(nc_pm), "PM-force");
+  mem_alloc_reserved(mem2);
   
   Particles* particles= alloc_particles(nc);
   particles->omega_m= omega_m;
-  
   
   // 2LPT initial condition / displacement
 
   cosmology_init(omega_m);
   lpt_init(nc, boxsize, mem1);
+  pm_init(nc_pm, pm_factor, mem1, mem2, boxsize);
+
   lpt_set_displacements(seed, ps, a_init, particles);
   particles->a_v= 1.0/nstep; // origial a_v
 
@@ -55,7 +63,7 @@ int main(int argc, char* argv[])
     float_t a_vel= (istep + 0.5)/nstep;
     float_t a_pos= (istep + 1.0)/nstep;
 
-    // calc force here!!!
+    pm_compute_forces(particles);
     cola_kick(particles, a_vel);
     cola_drift(particles, a_pos);
   }

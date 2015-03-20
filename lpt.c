@@ -172,7 +172,7 @@ void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
 	do
 	  ampl = gsl_rng_uniform(random_generator);
 	while(ampl == 0.0);
-	
+
 	if(ix == nc/2 || iy == nc/2 || iz == nc/2)
 	  continue;
 	if(ix == 0 && iy == 0 && iz == 0)
@@ -218,7 +218,7 @@ void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
 	double delta_k_mag= fac*sqrt(delta2);
 	// delta_k_mag -- |delta_k| extrapolated to a=1
 	// Displacement is extrapolated to a=1
-	
+
 	if(iz > 0) {
 	  if(local_ix0 <= ix && ix < (local_ix0 + local_nx)) {
 	    size_t index= ((ix - local_ix0)*nc + iy)*nckz + iz;
@@ -286,8 +286,8 @@ void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
 void lpt_compute_psi2_k(void)
 {
   // Compute 2nd order Psi(2) from 1st order Psi
-  //   Prerequest Psi_k  in fft_psi[]->fk
-  //   Result     Psi2_k in fft_psi2[]->fk (Fourier space)
+  //   Precondition Psi_k  in fft_psi[]->fk
+  //   Result       Psi2_k in fft_psi2[]->fk (Fourier space)
   
   msg_printf(msg_verbose, "Computing 2LPT displacement fields...\n");
 
@@ -307,6 +307,9 @@ void lpt_compute_psi2_k(void)
     assert(fft_psi_ij[i]);
     psi_ij_k[i]= fft_psi_ij[i]->fk;
   }
+
+  //for(int i=0; i<64; i++)
+  //  printf("debug-pre %e\n", fft_psi[0]->fk[i][0]);
 
   // Take derivative dPsi_i/dq_j in Fourier space
   for(size_t ix=0; ix<local_nx; ix++) {
@@ -351,6 +354,10 @@ void lpt_compute_psi2_k(void)
     }
   }
 
+  //for(int i=0; i<64; i++)
+  //  printf("debug %e\n", fft_psi[0]->fk[i][0]);
+  //abort();
+
   // Second-order displacement Psi(2)
   // div.Psi(2) = Sum_{i<j} [ Psi_i,j Psi_i,j - Psi_i,i Psi_j,j ]
   // in realspace
@@ -360,7 +367,7 @@ void lpt_compute_psi2_k(void)
     fft_execute_inverse(fft_psi_ij[i]);
 
   float_t* psi_ij[6]; for(int i=0; i<6; i++) psi_ij[i]= fft_psi_ij[i]->fx;
-  float_t* const div_psi2= fft_div_psi2->fx;
+  float_t* const div_psi2= fft_div_psi2->fx; // == fft_psi_ij[3];
 
   size_t nczr= 2*(nc/2 + 1);
   for(size_t ix=0; ix<local_nx; ix++) {
@@ -412,7 +419,10 @@ void lpt_compute_psi2_k(void)
 	  kvec[2] = -dk*(nc - iz);
 	
 	double kmag2= kvec[0]*kvec[0] + kvec[1]*kvec[1] + kvec[2]*kvec[2];
+
+#ifdef CHECK	
 	assert(kmag2 > 0); // !!! Heavy assert. Remove later.
+#endif	
 	    
 	// Psi(2)_k = div.Psi(2)_k * k / (sqrt(-1) k^2)
 	for(int i=0; i<3; i++) {
@@ -435,10 +445,14 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 	      particles->np_allocated, np_local);
  
   lpt_generate_psi_k(seed, ps);
+  //for(int i=0; i<64*64; i++)
+  //  printf("fk %e\n", fft_psi[0]->fk[i][0]);
+
+  
   lpt_compute_psi2_k();
 
-  // Prerequest: psi_k in fft_psi[]->fk and psi2_k in fft_psi2[]->fk
-  
+  // precondition: psi_k in fft_psi[]->fk and psi2_k in fft_psi2[]->fk
+
   // Convert Psi_k Psi2_k to realspace
   msg_printf(msg_verbose, "Fourier transforming 2LPT displacements\n");
   for(int i=0; i<3; i++) {
@@ -464,7 +478,8 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 
   msg_printf(msg_verbose, "LPT growth factor for a=%e: D1= %e, D2= %e\n",
 	     a, D1, D2);
-  
+
+
   
   float_t x[3];
   for(size_t ix=0; ix<local_nx; ix++) {
@@ -475,23 +490,36 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
      x[2]= iz*dx;
 
      size_t index= (ix*nc + iy)*nczr + iz;
-     for(int i=0; i<3; i++) {
-       float_t dis=  psi[i][index];
-       float_t dis2= nmesh3_inv*psi2[i][index];
+     for(int k=0; k<3; k++) {
+       float_t dis=  psi[k][index];
+       float_t dis2= nmesh3_inv*psi2[k][index];
        // psi2 had two inverse Fourier transofroms, giving additional nmesh3
        
-       p->x[i]= x[i] + D1*dis + D2*dis2;
-       p->dx1[i]= dis;              // 1LPT extrapolated to a=1
-       p->dx2[i]= dis2;             // 2LPT displacement
+       p->x[k]= x[k] + D1*dis + D2*dis2;
+       p->dx1[k]= dis;              // 1LPT extrapolated to a=1
+       p->dx2[k]= dis2;             // 2LPT displacement
                                     // multiply by cosmology_D2_growth() for a
-       p->v[i]= 0;                  // velocity in comoving 2LPT	  
+       p->v[k]= 0;                  // velocity in comoving 2LPT
+
+       //fprintf(stderr, "%e %e %e\n", dis, dis2, x[k]);
+       //
      }
      p->id= id++;
+
+
+     //fprintf(stderr, "%e %e %e\n", p->x[0], p->x[1], p->x[2]);
+     
      p++;
     }
    }
   }
 
+  p= particles->p;
+  //for(int i=0; i<nc*nc*nc; i++) {
+  //  fprintf(stderr, "%e %e %e\n", p->x[0], p->x[1], p->x[2]);
+  //}
+
+  
   msg_printf(msg_verbose, "2LPT displacements calculated.\n");
   
   particles->np_local= np_local; 

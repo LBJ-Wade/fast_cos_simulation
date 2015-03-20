@@ -23,7 +23,7 @@
 
 #ifdef MPI
 
-FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
+FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed)
 {
   // Allocates memory for FFT real and Fourier space and initilise fftw_plans
 
@@ -44,17 +44,27 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
     
   if(mem == 0)
     mem= mem_alloc(name, size);
-  else
-    mem_use_remaining(mem, size);
+  
+  void* buf= mem_use_remaining(mem, size);
     // Call mem_use_from_zero(mem, 0) before this to use mem from the beginning.
 
   fft->ncomplex= ncomplex;
-  fft->fx= mem->buf; fft->fk= mem->buf;
 
+  fft->fx= buf; fft->fk= buf;
+
+  unsigned flag= 0;
+  if(transposed) flag= FFTW_MPI_TRANSPOSED_OUT;
   fft->forward_plan= FFTW(mpi_plan_dft_r2c_3d)(nc, nc, nc, fft->fx, fft->fk,
-				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
+				       MPI_COMM_WORLD, FFTW_MEASURE | flag);
+
+  unsigned flag_inv= 0;
+  if(transposed) {
+    flag_inv= FFTW_MPI_TRANSPOSED_IN;
+    msg_printf(msg_debug, "FFTW transposed in/out");
+  }
+  
   fft->inverse_plan= FFTW(mpi_plan_dft_c2r_3d)(nc, nc, nc, fft->fk,fft->fx,
-				       MPI_COMM_WORLD, FFTW_MEASURE | flags);
+                                     MPI_COMM_WORLD, FFTW_MEASURE | flag_inv);
 
   // ToDo: FFTW_MPI_TRANSPOSED_IN/FFTW_MPI_TRANSPOSED_OUT would be faster
 

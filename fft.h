@@ -17,7 +17,7 @@ typedef struct {
 } FFT;
 
 size_t fft_mem_size(const int nc);
-FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags);
+FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed);
 void fft_execute_forward(FFT* const fft);
 void fft_execute_inverse(FFT* const fft);
 void fft_free(FFT* const fft);

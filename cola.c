@@ -26,21 +26,21 @@ float Qfactor(const float a);
 
 void cola_kick(Particles* const particles, const float avel1)
 {
-  const float AI=  particles->a_v;  // t - 0.5*dt
-  const float A=   particles->a_x;  // t
-  const float AF=  avel1;           // t + 0.5*dt
+  const float ai=  particles->a_v;  // t - 0.5*dt
+  const float a=   particles->a_x;  // t
+  const float af=  avel1;           // t + 0.5*dt
 
   Om= particles->omega_m;
-  msg_printf(msg_info, "Kick %g -> %g\n", AI, avel1);
+  msg_printf(msg_info, "Kick %g -> %g\n", ai, avel1);
 
-  const float Om143= pow(Om/(Om + (1 - Om)*A*A*A), 1.0/143.0);
+  const float Om143= pow(Om/(Om + (1 - Om)*a*a*a), 1.0/143.0);
   //const float dda= Sphi(AI, AF, A);
   //const float dda_new= Sphi_new(AI, AF, A);
   //printf("Sphi(%e %e %e) -> %e\n", AI, AF, A, dda);
   //const float growth1=growthD(A);
-  const float kick_factor= (pow(AF, nLPT) - pow(AI, nLPT))/
-                           (nLPT*pow(A, nLPT)*sqrt(Om/A+(1.0-Om)*A*A));
-  const float growth1= cosmology_D_growth(A);
+  const float kick_factor= (pow(af, nLPT) - pow(ai, nLPT))/
+                           (nLPT*pow(a, nLPT)*sqrt(Om/a+(1.0-Om)*a*a));
+  const float growth1= cosmology_D_growth(a);
   //const float growth2= cosmology_D2_growth(A, growth1);
   //fprintf(stderr, "%e %e %e\n", dda, kick_factor, fabs(dda-kick_factor)/dda);
 	
