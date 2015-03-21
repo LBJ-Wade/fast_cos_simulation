@@ -58,13 +58,13 @@ void mem_alloc_reserved(Mem* const mem)
   if(mem->buf) free(mem->buf);
 
   mem->buf= fft_malloc(mem->size_using);
-  
+
   if(mem->buf == 0)
     msg_abort("Error: Unable to allocate %lu MB for %s\n",
-	      mem->size_alloc/(1024*1024), mem->name);
+	      mem->size_using/(1024*1024), mem->name);
   else
     msg_printf(msg_info, "%lu MB allocated for mem %s\n",
-	       mem->size_alloc/(1024*1024), mem->name);
+	       mem->size_using/(1024*1024), mem->name);
 
   mem->size_alloc= mem->size_using;
   mem->size_using= 0;
@@ -82,10 +82,10 @@ Mem* mem_alloc(const char name[], const size_t size)
 
 void* mem_use_from_zero(Mem* const mem, size_t size)
 {
-  size= size_align(size);
+  size= size_align(size); 
 
   if(size > mem->size_alloc)
-    msg_abort("Error: Unable to use $lu MB in Mem %s (only %lu MB allocated)\n",
+    msg_abort("Error: Unable to use %lu MB in Mem %s (only %lu MB allocated)\n",
 	      mbytes(size), mem->name, mbytes(mem->size_alloc));
 
   mem->size_using= size;
@@ -97,20 +97,21 @@ void* mem_use_remaining(Mem* const mem, size_t size)
   size= size_align(size);
 
   //printf("debug %lu %lu\n", mem->size_using, mem->size_alloc);
-  msg_printf(msg_verbose, "using %lu in memory %s\n", size, mem->name);
-
   
   if(size + mem->size_using > mem->size_alloc)
     msg_abort("Error: Unable to use %lu MB in Mem %s; %lu MB allocated, "
 	      "%lu remaining.\n",
 	      mbytes(size), mem->name, mbytes(mem->size_alloc),
 	      mbytes(mem->size_alloc - mem->size_using));
-
-  mem->size_using += size;
   
   assert(mem->size_using % sizeof(float) == 0);
   float* p= mem->buf;
-  size_t n= mem->size_using / sizeof(float);
+  size_t n= mem->size_using / sizeof(float); //printf("n= %lu\n", n);
+
+  mem->size_using += size;
+  msg_printf(msg_verbose, "Using %lu of %lu in memory %s\n",
+	     mem->size_using, mem->size_alloc, mem->name);
+
 
   return p+n;
 }

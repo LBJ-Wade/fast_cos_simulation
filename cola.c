@@ -54,7 +54,7 @@ void cola_kick(Particles* const particles, const float avel1)
 
   //fprintf(stderr, "new %e %e %e %e\n", A, q1, q2, dda);
 
-  Particle* const P= particles->p;
+  Particle* const p= particles->p;
   const int np= particles->np_local;
   float3* const f= particles->force;
   
@@ -64,18 +64,20 @@ void cola_kick(Particles* const particles, const float avel1)
   #pragma omp parallel for default(shared)
 #endif
   for(int i=0; i<np; i++) {
-    float ax= -1.5*Om*f[i][0] - (P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
-    float ay= -1.5*Om*f[i][1] - (P[i].dx1[1]*q1 + P[i].dx2[1]*q2);
-    float az= -1.5*Om*f[i][2] - (P[i].dx1[2]*q1 + P[i].dx2[2]*q2);
+    float ax= -1.5*Om*f[i][0] - (p[i].dx1[0]*q1 + p[i].dx2[0]*q2);
+    float ay= -1.5*Om*f[i][1] - (p[i].dx1[1]*q1 + p[i].dx2[1]*q2);
+    float az= -1.5*Om*f[i][2] - (p[i].dx1[2]*q1 + p[i].dx2[2]*q2);
 
     //fprintf(stderr, "%e %e %e\n", A, -1.5*Om*f[i][0],
     //P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
     // check here, I don't understand why not -1.5*Om*(f[i][0] - P[i].dx1[0]
     // !!!
     
-    P[i].v[0] += ax*kick_factor;
-    P[i].v[1] += ay*kick_factor;
-    P[i].v[2] += az*kick_factor;
+    p[i].v[0] += ax*kick_factor;
+    p[i].v[1] += ay*kick_factor;
+    p[i].v[2] += az*kick_factor;
+
+    //printf("%e\n", p[i].v[0]);
   }
 
   //velocity is now at a= avel1
@@ -111,6 +113,8 @@ void cola_drift(Particles* const particles, const float apos1)
                  (P[i].dx1[1]*da1 + P[i].dx2[1]*da2);
     P[i].x[2] += P[i].v[2]*dyyy + 
                  (P[i].dx1[2]*da1 + P[i].dx2[2]*da2);
+
+    //printf("%e\n", P[i].v[0]*dyyy + (P[i].dx1[0]*da1 + P[i].dx2[0]*da2));
   }
     
   particles->a_x= AF;

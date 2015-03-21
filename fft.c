@@ -23,7 +23,7 @@
 
 #ifdef MPI
 
-FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed)
+FFT* fft_alloc(const char name[], const int nc, Mem* mem, const int transposed)
 {
   // Allocates memory for FFT real and Fourier space and initilise fftw_plans
 
@@ -34,9 +34,17 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed)
 
   //msg_printf(msg_debug, "fft_alloc nc= %d\n", nc);
 
-  ptrdiff_t ncomplex=
-    FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,
-			    &fft->local_nx, &fft->local_ix0);    
+  ptrdiff_t ncomplex= 0;
+  if(transposed) {
+    ncomplex= FFTW(mpi_local_size_3d_transposed)(nc, nc, nc, MPI_COMM_WORLD,
+	                 &fft->local_nx, &fft->local_ix0,
+			 &fft->local_nky, &fft->local_iky0);
+  }
+  else {
+    ncomplex= FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,
+			    &fft->local_nx, &fft->local_ix0);
+    fft->local_nky= fft->local_iky0= 0;
+  }
 
   size_t size= sizeof(complex_t)*ncomplex;
   assert(fft->local_nx >= 0); assert(fft->local_ix0 >= 0);
@@ -60,7 +68,7 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed)
   unsigned flag_inv= 0;
   if(transposed) {
     flag_inv= FFTW_MPI_TRANSPOSED_IN;
-    msg_printf(msg_debug, "FFTW transposed in/out");
+    msg_printf(msg_debug, "FFTW transposed in/out\n");
   }
   
   fft->inverse_plan= FFTW(mpi_plan_dft_c2r_3d)(nc, nc, nc, fft->fk,fft->fx,
@@ -71,15 +79,55 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, int transposed)
   return fft;
 }
 
-size_t fft_mem_size(const int nc)
+size_t fft_mem_size_working(const int nc, const int transposed)
 {
   // return the memory size necessary for the 3D FFT
-  ptrdiff_t local_nx, local_ix0;
-  ptrdiff_t ncomplex=
-    FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD, &local_nx, &local_ix0);
+  ptrdiff_t local_nx, local_ix0, local_nky, local_iky0;
 
+  ptrdiff_t ncomplex= 0;
+  if(transposed)
+    ncomplex= FFTW(mpi_local_size_3d_transposed)(nc, nc, nc, MPI_COMM_WORLD,
+	           &local_nx, &local_ix0, &local_nky, &local_iky0);
+  else
+    ncomplex= FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,
+				      &local_nx, &local_ix0);
+
+
+  //printf("ncomplex %d %ld %lu %lu\n", nc, ncomplex, sizeof(complex_t), size_align(sizeof(complex_t)*ncomplex));
+  
   return size_align(sizeof(complex_t)*ncomplex);
 }
+
+size_t fft_mem_size_fk(const int nc, const int transposed)
+{
+  // return the memory size necessary for the 3D FFT data in k space
+  ptrdiff_t local_nx, local_ix0, local_nky, local_iky0;
+
+  if(transposed)
+    FFTW(mpi_local_size_3d_transposed)(nc, nc, nc, MPI_COMM_WORLD,
+	           &local_nx, &local_ix0, &local_nky, &local_iky0);
+  else {
+    FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD,
+				      &local_nx, &local_ix0);
+    local_nky= local_nx;
+  }
+  msg_printf(msg_verbose,
+	     "FFT_mem_size_fk %lu %ld\n", sizeof(complex_t)*nc*nc*local_nky,
+	     local_nky);
+  
+  const size_t nckz= nc/2 + 1;
+  
+  return size_align(sizeof(complex_t)*nc*local_nky*nckz);
+}
+
+size_t fft_local_nx(const int nc)
+{
+  ptrdiff_t local_nx, local_ix0; 
+  FFTW(mpi_local_size_3d)(nc, nc, nc, MPI_COMM_WORLD, &local_nx, &local_ix0);
+
+  return local_nx;
+}
+
 
 void fft_finalize(void)
 {
@@ -114,11 +162,10 @@ FFT* fft_alloc(const char name[], const int nc, Mem* mem, unsigned flags)
     
   if(mem == 0)
     mem= mem_alloc(name, size);
-  else
-    mem_use_remaining(mem, size);
 
   fft->ncomplex= ncomplex;
-  fft->fx= mem->buf; fft->fk= mem->buf;
+  void* buf= mem_use_remaining(mem, size);
+  fft->fx= buf; fft->fk= buf;
 
   unsigned flag0= FFTW_ESTIMATE; // can use FFTW_MEASURE for many realizations
   // serial version are mainly used for interactive jobs

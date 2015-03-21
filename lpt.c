@@ -437,6 +437,7 @@ void lpt_compute_psi2_k(void)
 void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
 			   const double a, Particles* particles)
 {
+  msg_printf(msg_verbose, "Computing 2LPT\n");
   assert(particles);
   size_t np_local= local_nx*nc*nc;
   if(particles->np_allocated < np_local)
@@ -479,15 +480,16 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
   msg_printf(msg_verbose, "LPT growth factor for a=%e: D1= %e, D2= %e\n",
 	     a, D1, D2);
 
+  double sum2= 0.0;
 
-  
+  const float_t offset= 0.5f; // debug!! 0.5 for test
   float_t x[3];
   for(size_t ix=0; ix<local_nx; ix++) {
-   x[0]= (local_ix0 + ix)*dx;
+   x[0]= (local_ix0 + ix + offset)*dx;
    for(size_t iy=0; iy<nc; iy++) {
-    x[1]= iy*dx;
+    x[1]= (iy + offset)*dx;
     for(int iz=0; iz<nc; iz++) {
-     x[2]= iz*dx;
+     x[2]= (iz + offset)*dx;
 
      size_t index= (ix*nc + iy)*nczr + iz;
      for(int k=0; k<3; k++) {
@@ -501,6 +503,7 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
                                     // multiply by cosmology_D2_growth() for a
        p->v[k]= 0;                  // velocity in comoving 2LPT
 
+       sum2 += (D1*dis + D2*dis2)*(D1*dis + D2*dis2);
        //fprintf(stderr, "%e %e %e\n", dis, dis2, x[k]);
        //
      }
@@ -514,6 +517,7 @@ void lpt_set_displacements(const unsigned long seed, PowerSpectrum* const ps,
    }
   }
 
+  msg_printf(msg_debug, "disp rms %e\n", sqrt(sum2/(local_nx*nc*nc)));
   p= particles->p;
   //for(int i=0; i<nc*nc*nc; i++) {
   //  fprintf(stderr, "%e %e %e\n", p->x[0], p->x[1], p->x[2]);

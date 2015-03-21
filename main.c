@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
   // Parameters
   int nc= 64;
-  float boxsize= 1000.0f;
+  float boxsize= 100.0f;
   const unsigned long seed= 100;
   const double omega_m= 0.273;
 
@@ -39,12 +39,14 @@ int main(int argc, char* argv[])
 
   // Memory management
   Mem* mem1= mem_init("mem1"); // mainly for density
-  mem_reserve(mem1, 9*fft_mem_size(nc), "LPT");
-  mem_reserve(mem1, fft_mem_size(nc_pm), "PM-density");
+  mem_reserve(mem1, 9*fft_mem_size_working(nc, 0), "LPT");
+  mem_reserve(mem1, fft_mem_size_working(nc_pm, 1), "ParticleMesh");
   mem_alloc_reserved(mem1);
 
+  //printf("Size FFT %lu\n", fft_mem_size_working(nc_pm, 1));
+
   Mem* mem2= mem_init("mem2");
-  mem_reserve(mem2, fft_mem_size(nc_pm), "PM-force");
+  mem_reserve(mem2, fft_mem_size_fk(nc_pm, 1), "delta_k");
   mem_alloc_reserved(mem2);
   
   Particles* particles= alloc_particles(nc);
@@ -76,7 +78,10 @@ int main(int argc, char* argv[])
 Particles* alloc_particles(const int nc)
 {
   Particles* particles= calloc(sizeof(Particles), 1); assert(particles);
-  size_t np_alloc= (size_t)((1.25*nc/comm_n_nodes())*nc*nc);
+
+  size_t nx= fft_local_nx(nc);
+  
+  size_t np_alloc= (size_t)((1.25*(nx + 1)*nc*nc));
   particles->p= malloc(np_alloc*sizeof(Particle)); assert(particles->p);
   particles->force= calloc(3*np_alloc, sizeof(float)); assert(particles->force);
 
@@ -84,7 +89,7 @@ Particles* alloc_particles(const int nc)
   particles->np_allocated= np_alloc;
 
   msg_printf(msg_verbose, "%lu Mbytes allocated for %lu particles\n",
-	     mbytes(np_alloc), np_alloc);
+	     mbytes(np_alloc*sizeof(Particle)), np_alloc);
 
   return particles;
 }
