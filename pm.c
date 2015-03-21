@@ -441,8 +441,8 @@ void force_at_particle_locations(Particles* const particles, const int np,
     if(iz0 >= nc) iz0= 0;
             
     int ix1= ix0 + 1;  // I1
-    int iy1= iy0 + 1; if(iy1 >= nc) iy0= 0; // J1
-    int iz1= iz0 + 1; if(iz1 >= nc) iz0= 0; // K1
+    int iy1= iy0 + 1; if(iy1 >= nc) iy1= 0; // J1
+    int iz1= iz0 + 1; if(iz1 >= nc) iz1= 0; // K1
 
     ix0 -= local_ix0;
     ix1 -= local_ix0;
@@ -469,6 +469,7 @@ void force_at_particle_locations(Particles* const particles, const int np,
 
 void add_buffer_forces(Particles* const particles, const size_t np)
 {
+  // !! Non-MPI version
   Particle* const p= particles->p;
   
   const int np_local= particles->np_local;
@@ -478,16 +479,18 @@ void add_buffer_forces(Particles* const particles, const size_t np)
     size_t i= p[j].id - 1;
     assert(p[i].id == p[j].id);
     force[i][0] += force[j][0];
-    force[i][1] += force[j][0];
-    force[i][2] += force[j][0];
+    force[i][1] += force[j][1];
+    force[i][2] += force[j][2];
   }
 
+  /*
   FILE* fp= fopen("force.txt", "w");
   for(size_t i = 0; i < particles->np_local; i++)
     fprintf(fp, "%e %e %e\n", force[i][0], force[i][1], force[i][2]);
   fclose(fp);
   printf("force.txt written\n");
   abort();
+  */
 
 }
 
