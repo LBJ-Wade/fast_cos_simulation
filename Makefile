@@ -44,6 +44,23 @@ all: $(EXEC)
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
 OBJS += lpt.o pm.o cola.o write.o
 
+cola.o: cola.c particle.h config.h msg.h cola.h cosmology.h write.h
+comm.o: comm.c
+config.o: config.c config.h msg.h
+cosmology.o: cosmology.c msg.h cosmology.h
+fft.o: fft.c config.h mem.h msg.h util.h particle.h fft.h
+lpt.o: lpt.c msg.h mem.h config.h cosmology.h power.h particle.h fft.h \
+  lpt.h
+main.o: main.c config.h particle.h util.h comm.h msg.h power.h mem.h \
+  fft.h cosmology.h lpt.h cola.h pm.h write.h
+mem.o: mem.c config.h msg.h util.h particle.h mem.h fft.h
+msg.o: msg.c comm.h msg.h
+pm.o: pm.c msg.h mem.h config.h cosmology.h comm.h particle.h fft.h
+pm_old.o: pm_old.c config.h msg.h particle.h fft.h mem.h
+power.o: power.c comm.h msg.h power.h
+util.o: util.c util.h particle.h config.h
+write.o: write.c particle.h config.h
+
 #
 # Linking libraries
 #
