@@ -24,7 +24,7 @@ typedef struct {
 
   size_t np_local, np_allocated;
   uint64_t np_total;
-  double omega_m;
+  double omega_m, boxsize;
 } Particles;
 
 #endif

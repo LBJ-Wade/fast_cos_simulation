@@ -11,15 +11,16 @@
 #include "msg.h"
 #include "cola.h"
 #include "cosmology.h"
+#include "write.h"
 
 static float Om= -1.0f;
 static const float nLPT= -2.5f;
-static const int fullT= 1; // velocity growth model
+//static const int fullT= 1; // velocity growth model
 
 //
-float growthD(const float a);
-float growthD2(const float a);
-double Sphi(double ai, double af, double aRef);
+//float growthD(const float a);
+//float growthD2(const float a);
+//double Sphi(double ai, double af, double aRef);
 double Sq(double ai, double af, double aRef);
 float Qfactor(const float a);
 // Leap frog time integration
@@ -46,7 +47,8 @@ void cola_kick(Particles* const particles, const float avel1)
 	
   msg_printf(msg_debug, "growth factor %g\n", growth1);
 
-  const float q2=1.5*Om*growth1*growth1*(1.0 + 7.0/3.0*Om143);
+  // Need to review/rederive
+  const float q2=-3.0/7.0*pow(Om, -1.0/143.0)*1.5*Om*growth1*growth1*(1.0 + 7.0/3.0*Om143);
   const float q1=1.5*Om*growth1;
 
   //fprintf(stderr, "check %e %e\n", growth1*growth1*(1.0 + 7.0/3.0*Om143),
@@ -54,9 +56,15 @@ void cola_kick(Particles* const particles, const float avel1)
 
   //fprintf(stderr, "new %e %e %e %e\n", A, q1, q2, dda);
 
+  //printf("kick_factor %e %e %e\n", kick_factor, q1, q2);
+  //printf("Om %e\n", Om);
+  //abort();
+
   Particle* const p= particles->p;
   const int np= particles->np_local;
   float3* const f= particles->force;
+
+  //FILE* fp= fopen("kick.txt", "w");
   
   // Kick using acceleration at a= A
   // Assume forces at a=A is in particles->force
@@ -67,6 +75,17 @@ void cola_kick(Particles* const particles, const float avel1)
     float ax= -1.5*Om*f[i][0] - (p[i].dx1[0]*q1 + p[i].dx2[0]*q2);
     float ay= -1.5*Om*f[i][1] - (p[i].dx1[1]*q1 + p[i].dx2[1]*q2);
     float az= -1.5*Om*f[i][2] - (p[i].dx1[2]*q1 + p[i].dx2[2]*q2);
+
+    /*
+    fprintf(fp, "%e %e %e %e %e %e %e\n",
+	    p[i].v[0],
+	    -1.5*Om*f[i][0],
+	    p[i].dx1[0],
+	    p[i].dx2[0],
+	    p[i].dx1[0]*q1 + p[i].dx2[0]*q2,
+	    ax,
+	    ax*kick_factor);
+    */
 
     //fprintf(stderr, "%e %e %e\n", A, -1.5*Om*f[i][0],
     //P[i].dx1[0]*q1 + P[i].dx2[0]*q2);
@@ -79,28 +98,38 @@ void cola_kick(Particles* const particles, const float avel1)
 
     //printf("%e\n", p[i].v[0]);
   }
-
+  //fclose(fp); abort();
+  
   //velocity is now at a= avel1
   particles->a_v= avel1;
+
+  //write_particles_txt("particles_kicked.txt", particles); abort();
 }
 
 void cola_drift(Particles* const particles, const float apos1)
 {
-  const float A=  particles->a_x; // t
-  const float AC= particles->a_v; // t + 0.5*dt
-  const float AF= apos1;          // t + dt
+  const float ai=  particles->a_x; // A:  t
+  //const float av= particles->a_v; // AC: t + 0.5*dt
+  const float af= apos1;          // AF: t + dt
   Om= particles->omega_m;
   
   Particle* const P= particles->p;
   const int np= particles->np_local;
 
   
-  const float dyyy=Sq(A, AF, AC);
+  const float dyyy=Sq(ai, af, particles->a_v);
 
-  const float da1= growthD(AF) - growthD(A);    // change in D_{1lpt}
-  const float da2= growthD2(AF) - growthD2(A);  // change in D_{2lpt}
+  //const float da1= growthD(AF) - growthD(A);    // change in D_{1lpt}
+  //const float da2= growthD2(AF) - growthD2(A);  // change in D_{2lpt}
 
-  msg_printf(msg_info, "Drift %g -> %g\n", A, AF);
+  const double growth_i= cosmology_D_growth(ai);
+  const double growth_f= cosmology_D_growth(af);
+  const float_t da1= growth_f - growth_i;
+
+  const float_t da2= cosmology_D2_growth(af, growth_f) -
+                     cosmology_D2_growth(ai, growth_i);
+
+  msg_printf(msg_info, "Drift %g -> %g\n", ai, af);
     
   // Drift
 #ifdef _OPENMP
@@ -117,9 +146,10 @@ void cola_drift(Particles* const particles, const float apos1)
     //printf("%e\n", P[i].v[0]*dyyy + (P[i].dx1[0]*da1 + P[i].dx2[0]*da2));
   }
     
-  particles->a_x= AF;
+  particles->a_x= af;
 }
 
+/*
 
 float growthDtemp(const float a){
     // Decided to use the analytic expression for LCDM. More transparent if I change this to numerical integration?
@@ -201,23 +231,29 @@ double DprimeQ(double a,float nGrowth)
   return (pow(decayD(a),-1.0 + nDecay)*pow(growthD(a),-1.0 + nGrowth)*(nGrowth*Nn- (3.0*(nDecay + nGrowth)*Om*growthD(a))/(2.*a)));  
 }
 
- 
+
+*/ 
 
 //
 // Functions for our modified time-stepping (used when StdDA=0):
 //
 
-double gpQ(double a) { 
-  return pow(a, nLPT);
-}
+//double gpQ(double a) { 
+//  return pow(a, nLPT);
+//}
 
 double fun (double a, void * params) {
-  double f;
+  //double f;
+  /*
   if (fullT==1) f = gpQ(a)/Qfactor(a); 
   else f = 1.0/Qfactor(a);
+  */
+
+  return pow(a, nLPT)/(sqrt(Om/(a*a*a) + 1.0 - Om)*a*a*a);
   
-  return f;
+  //return f;
 }
+
 
 /*     
       When StdDA=0, one needs to set fullT and nLPT.
@@ -227,7 +263,7 @@ double fun (double a, void * params) {
          See Section A.3 of TZE.
 */
 
-double Sq(double ai, double af, double aRef) {
+double Sq(double ai, double af, double av) {
   gsl_integration_workspace * w 
     = gsl_integration_workspace_alloc (5000);
   
@@ -243,15 +279,17 @@ double Sq(double ai, double af, double aRef) {
   
   gsl_integration_workspace_free (w);
      
-  if (fullT==1)
-    return result/gpQ(aRef);
-  return result;
+  //if (fullT==1)
+  //  return result/gpQ(aRef);
+  //return result;
+  return result/pow(av, nLPT);
 }
-     
+
+/*
 double DERgpQ(double a) { // This must return d(gpQ)/da
   return nLPT*pow(a, nLPT-1);
 }
-     
+
 double Sphi(double ai, double af, double aRef) {
   double result;
   result=(gpQ(af)-gpQ(ai))*aRef/Qfactor(aRef)/DERgpQ(aRef);
@@ -259,3 +297,4 @@ double Sphi(double ai, double af, double aRef) {
   return result;
 }
 
+*/

@@ -5,7 +5,6 @@
 #include "mem.h"
 #include "config.h"
 #include "cosmology.h"
-//#include "power.h"
 #include "comm.h"
 #include "particle.h"
 #include "fft.h"
@@ -14,8 +13,6 @@ static int pm_factor;
 static size_t nc, nzpad;
 static float_t boxsize;
 
-//static FFT* fft_density; 
-//static FFT* fft_force;
 static FFT* fft_pm;
 static complex_t* delta_k;
 

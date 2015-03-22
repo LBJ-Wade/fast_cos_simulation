@@ -13,6 +13,7 @@
 #include "lpt.h"
 #include "cola.h"
 #include "pm.h"
+#include "write.h"
 
 Particles* alloc_particles(const int nc);
 
@@ -51,6 +52,7 @@ int main(int argc, char* argv[])
   
   Particles* particles= alloc_particles(nc);
   particles->omega_m= omega_m;
+  particles->boxsize= boxsize;
   
   // 2LPT initial condition / displacement
 
@@ -61,16 +63,31 @@ int main(int argc, char* argv[])
   lpt_set_displacements(seed, ps, a_init, particles);
   particles->a_v= 1.0/nstep; // origial a_v
 
-  for(int istep=1; istep<=nstep; istep++) {
+  //write_particles_txt("particle.txt", particles); abort();
+		      
+  
+  for(int istep=1; istep<nstep; istep++) {
     float_t a_vel= (istep + 0.5)/nstep;
     float_t a_pos= (istep + 1.0)/nstep;
 
     pm_compute_forces(particles);
     cola_kick(particles, a_vel);
     cola_drift(particles, a_pos);
+
+    write_particles_txt("particles_drifted.txt", particles); abort();
   }
      
   msg_printf(msg_info, "Hello World\n");
+
+  /*
+  FILE* fp= fopen("snp_010.txt", "w");
+  Particle* p= particles->p;
+  for(int i=0; i<particles->np_local; i++) {
+    fprintf(fp, "%e %e %e\n", p[i].x[0], p[i].x[1], p[i].x[2]);
+  }
+  fclose(fp);
+  */
+  
 
   comm_mpi_finalise();
 }
