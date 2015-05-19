@@ -35,8 +35,7 @@ FFT* fft_div_psi2;  // divergence of Psi(2)
 
 static void set_seedtable(const int nc, gsl_rng* random_generator,
 			  unsigned int* const stable);
-static void lpt_generate_psi_k(const unsigned long seed,
-			       PowerSpectrum* const ps);
+static void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const);
 static void lpt_compute_psi2_k(void);
 
 void lpt_init(const int nc_, const double boxsize_, Mem* mem)
@@ -119,6 +118,162 @@ void set_seedtable(const int nc, gsl_rng* random_generator,
       stable[(nc - 1 - j)*nc + (nc - 1 - i)] = 
 	0x7fffffff * gsl_rng_uniform(random_generator);
   }
+}
+
+void lpt_generate_phi(const unsigned long seed, PowerSpectrum* const ps)
+{
+  // Generates linear potential field
+  msg_printf(msg_verbose, "Generating phi_k...\n");
+
+  assert(fft_psi[0]);
+
+  complex_t* phi_k= fft_psi[0]->fk;
+
+  const size_t nckz= nc/2 + 1;
+  const double dk= 2.0*M_PI/boxsize;
+  const double knq= nc*M_PI/boxsize; // Nyquist frequency
+  const double fac= pow(2*M_PI/boxsize, 1.5);
+  const double fac_2pi3= 1.0/(8.0*M_PI*M_PI*M_PI);
+  
+  gsl_rng* random_generator = gsl_rng_alloc(gsl_rng_ranlxd1);
+  gsl_rng_set(random_generator, seed);
+  set_seedtable(nc, random_generator, seedtable);
+
+  
+  // clean the delta_k grid
+  for(size_t ix=0; ix<local_nx; ix++)
+   for(size_t iy=0; iy<nc; iy++)
+    for(size_t iz=0; iz<nckz; iz++)
+      for(int i=0; i<3; i++) {
+	size_t index= (ix*nc + iy)*nckz + iz;
+	phi_k[index][0] = 0;
+	phi_k[index][1] = 0;
+      }
+
+  double kvec[3];
+  for(size_t ix=0; ix<nc; ix++) {
+    size_t iix = nc - ix;
+    if(iix == nc)
+      iix = 0;
+
+    if(!((local_ix0 <= ix  && ix  < (local_ix0 + local_nx)) ||
+	 (local_ix0 <= iix && iix < (local_ix0 + local_nx))))
+      continue;
+    
+    for(size_t iy=0; iy<nc; iy++) {
+      gsl_rng_set(random_generator, seedtable[ix*nc + iy]);
+      
+      for(size_t iz=0; iz<nc/2; iz++) {
+	double phase= gsl_rng_uniform(random_generator)*2*M_PI;
+	double ampl;
+	do
+	  ampl = gsl_rng_uniform(random_generator);
+	while(ampl == 0.0);
+
+	if(ix == nc/2 || iy == nc/2 || iz == nc/2)
+	  continue;
+	if(ix == 0 && iy == 0 && iz == 0)
+	  continue;
+	
+	if(ix < nc/2)
+	  kvec[0]= dk*ix;
+	else
+	  kvec[0]= -dk*(nc - ix);
+	
+	if(iy < nc/2)
+	  kvec[1]= dk*iy;
+	else
+	  kvec[1]= -dk*(nc - iy);
+	
+	if(iz < nc/2)
+	  kvec[2]= dk*iz;
+	else
+	  kvec[2]= -dk*(nc - iz);
+	
+	double kmag2 = kvec[0]*kvec[0] + kvec[1]*kvec[1] + kvec[2]*kvec[2];
+	double kmag = sqrt(kmag2);
+	
+#ifdef SPHEREMODE
+	// select a sphere in k-space
+	if(kmag > knq)
+	  continue;
+#else
+	if(fabs(kvec[0]) > knq)
+	  continue;
+	if(fabs(kvec[1]) > knq)
+	  continue;
+	if(fabs(kvec[2]) > knq)
+	  continue;
+#endif
+	
+	//double p_of_k = PowerSpec(kmag); // = 1/(2pi)^3*P(k)
+	//double pk= fac_2pi3*power_spectrum(ps, kmag);	
+	//p_of_k *= -log(ampl);
+
+	double delta2= -log(ampl)*fac_2pi3*power_spectrum(ps, kmag);
+	
+	double delta_k_mag= fac*sqrt(delta2);
+	// delta_k_mag -- |delta_k| extrapolated to a=1
+	// Displacement is extrapolated to a=1
+
+	if(iz > 0) {
+	  if(local_ix0 <= ix && ix < (local_ix0 + local_nx)) {
+	    size_t index= ((ix - local_ix0)*nc + iy)*nckz + iz;
+	     phi_k[index][0]= -delta_k_mag*cos(phase)/kmag2;
+	     phi_k[index][1]= -delta_k_mag*sin(phase)/kmag2;
+	  }
+	}
+	else { // k=0 plane needs special treatment
+	  if(ix == 0) {
+	    if(iy >= nc/2)
+	      continue;
+	    else {
+	      if(local_ix0 <= ix && ix < (local_ix0 + local_nx)) {
+		size_t iiy= nc - iy; // note: j!=0 surely holds at this point
+		size_t index= ((ix - local_ix0)*nc + iy)*nckz + iz;				size_t iindex= ((ix - local_ix0)*nc + iiy)*nckz + iz;
+		
+		phi_k[index][0]=  -delta_k_mag*cos(phase)/kmag2;
+		phi_k[index][1]=  -delta_k_mag*sin(phase)/kmag2;
+
+		phi_k[iindex][0]= -delta_k_mag*cos(phase)/kmag2;
+		phi_k[iindex][1]=  delta_k_mag*sin(phase)/kmag2;
+
+
+	      }
+	    }
+	  }
+	  else { // here comes i!=0 : conjugate can be on other processor!
+	    if(ix >= nc/2)
+	      continue;
+	    else {
+	      iix = nc - ix;
+	      if(iix == nc)
+		iix = 0;
+	      int iiy = nc - iy;
+	      if(iiy == nc)
+		iiy = 0;
+	      
+	      if(local_ix0 <= ix && ix < (local_ix0 + local_nx)) {
+		size_t index= ((ix - local_ix0)*nc + iy)*nckz + iz;
+		phi_k[index][0]= -delta_k_mag*cos(phase)/kmag2;
+		phi_k[index][1]= -delta_k_mag*sin(phase)/kmag2;
+	      }
+	      
+	      if(local_ix0 <= iix && iix < (local_ix0 + local_nx)) {
+		size_t index= ((iix - local_ix0)*nc + iiy)*nckz + iz;
+		phi_k[index][0]= -delta_k_mag*cos(phase)/kmag2;
+		phi_k[index][1]=  delta_k_mag*sin(phase)/kmag2;
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  gsl_rng_free(random_generator);
+
+  fft_execute_inverse(fft_psi[0]);
 }
 
 void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
@@ -282,6 +437,7 @@ void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)
 
   gsl_rng_free(random_generator);  
 }
+
 
 void lpt_compute_psi2_k(void)
 {
