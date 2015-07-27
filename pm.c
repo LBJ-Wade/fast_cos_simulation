@@ -25,7 +25,7 @@ static inline void grid_assign(float_t * const d,
   d[(ix*nc + iy)*nzpad + iz] += f;
 }
 
-static inline float grid_val(float_t const * const d,
+static inline float_t grid_val(float_t const * const d,
 			const size_t ix, const size_t iy, const size_t iz)
 {
   return d[(ix*nc + iy)*nzpad + iz];
@@ -426,9 +426,9 @@ void force_at_particle_locations(Particles* const particles, const int np,
     int iy0= (int) y; //J
     int iz0= (int) z;   //K
     
-    float_t wx1= x - (float) ix0; //D1
-    float_t wy1= y - (float) iy0; //D2
-    float_t wz1= z - (float) iz0; //D3
+    float_t wx1= x - ix0; //D1
+    float_t wy1= y - iy0; //D2
+    float_t wz1= z - iz0; //D3
 
     float_t wx0= 1 - wx1; // T1
     float_t wy0= 1 - wy1; // T2

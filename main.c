@@ -14,6 +14,7 @@
 #include "cola.h"
 #include "pm.h"
 #include "write.h"
+#include "domain.h"
 
 Particles* alloc_particles(const int nc);
 
@@ -28,7 +29,7 @@ int main(int argc, char* argv[])
 
   // Parameters
   int nc= 64;
-  float boxsize= 100.0f;
+  float boxsize= 64.0f;
   const unsigned long seed= 100;
   const double omega_m= 0.273;
 
@@ -36,15 +37,14 @@ int main(int argc, char* argv[])
 
   const int pm_factor= 3;
   const int nc_pm= pm_factor*nc;
-  const float a_init= 1.0/nstep;
+  const float a_final= 1.0;
+  const float a_init= a_final/nstep;
 
   // Memory management
   Mem* mem1= mem_init("mem1"); // mainly for density
   mem_reserve(mem1, 9*fft_mem_size_working(nc, 0), "LPT");
   mem_reserve(mem1, fft_mem_size_working(nc_pm, 1), "ParticleMesh");
   mem_alloc_reserved(mem1);
-
-  //printf("Size FFT %lu\n", fft_mem_size_working(nc_pm, 1));
 
   Mem* mem2= mem_init("mem2");
   mem_reserve(mem2, fft_mem_size_fk(nc_pm, 1), "delta_k");
@@ -60,7 +60,16 @@ int main(int argc, char* argv[])
   lpt_init(nc, boxsize, mem1);
   pm_init(nc_pm, pm_factor, mem1, mem2, boxsize);
 
-  lpt_set_displacements(seed, ps, a_init, particles);
+  lpt_set_displacements(seed, ps, 0.0, particles); // devel: put particle on gird
+
+  domain_decomposition(particles, lpt_generate_phi(seed, ps));
+
+  write_particles_txt("particle.txt", particles, 2.0f*boxsize/nc);
+
+  msg_abort("developement abort");
+  //
+  
+  //lpt_set_displacements(seed, ps, a_init, particles);
   particles->a_v= 1.0/nstep; // origial a_v
 
   //write_particles_txt("particle.txt", particles); abort();
@@ -74,7 +83,7 @@ int main(int argc, char* argv[])
     cola_kick(particles, a_vel);
     cola_drift(particles, a_pos);
 
-    write_particles_txt("particles_drifted.txt", particles); abort();
+    write_particles_txt("particles_drifted.txt", particles, 0); abort();
   }
      
   msg_printf(msg_info, "Hello World\n");

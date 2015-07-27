@@ -42,7 +42,7 @@ EXEC = fs libfs.a # doc
 all: $(EXEC)
 
 OBJS := main.o comm.o msg.o power.o cosmology.o mem.o util.o fft.o config.o
-OBJS += lpt.o pm.o cola.o write.o
+OBJS += lpt.o pm.o cola.o write.o domain.o
 
 cola.o: cola.c particle.h config.h msg.h cola.h cosmology.h write.h
 comm.o: comm.c

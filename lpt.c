@@ -120,7 +120,7 @@ void set_seedtable(const int nc, gsl_rng* random_generator,
   }
 }
 
-void lpt_generate_phi(const unsigned long seed, PowerSpectrum* const ps)
+FFT* lpt_generate_phi(const unsigned long seed, PowerSpectrum* const ps)
 {
   // Generates linear potential field
   msg_printf(msg_verbose, "Generating phi_k...\n");
@@ -274,6 +274,7 @@ void lpt_generate_phi(const unsigned long seed, PowerSpectrum* const ps)
   gsl_rng_free(random_generator);
 
   fft_execute_inverse(fft_psi[0]);
+  return fft_psi[0];
 }
 
 void lpt_generate_psi_k(const unsigned long seed, PowerSpectrum* const ps)

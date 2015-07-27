@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "particle.h"
 
-void write_particles_txt(char filename[], Particles* particles)
+void write_particles_txt(char filename[], Particles* particles, const float dx)
 {
   FILE* fp= fopen(filename, "w"); assert(fp);
 
@@ -17,9 +17,10 @@ void write_particles_txt(char filename[], Particles* particles)
       if(x[k] >= boxsize) x[k] -= boxsize;
     }
 
-    fprintf(fp, "%e %e %e %e %e %e\n",
-	    x[0], x[1], x[2],
-	    p[i].v[0], p[i].v[1], p[i].v[2]);
+    if(dx == 0.0f || x[2] < dx)
+      fprintf(fp, "%e %e %e %e %e %e\n",
+	      x[0], x[1], x[2],
+	      p[i].v[0], p[i].v[1], p[i].v[2]);
   }
   
   fclose(fp);
