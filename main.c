@@ -60,9 +60,10 @@ int main(int argc, char* argv[])
   lpt_init(nc, boxsize, mem1);
   pm_init(nc_pm, pm_factor, mem1, mem2, boxsize);
 
-  lpt_set_displacements(seed, ps, 0.0, particles); // devel: put particle on gird
+  lpt_set_displacements(seed, ps, a_final, particles);
 
-  domain_decomposition(particles, lpt_generate_phi(seed, ps));
+  //domain_decomposition(particles, lpt_generate_phi(seed, ps));
+  domain_decomposition2(particles);
 
   write_particles_txt("particle.txt", particles, 2.0f*boxsize/nc);
 

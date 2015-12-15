@@ -93,6 +93,14 @@ void cola_drift(Particles* const particles, const double apos1)
                      cosmology_D2_growth(ai, growth_i);
 
   msg_printf(msg_info, "Drift %lg -> %lg\n", ai, af);
+  /*
+  msg_printf(msg_debug, "growth factor %lg %lg -> %lg %lg\n",
+	     growth_i, growth_f,
+	     cosmology_D2_growth(ai, growth_i),
+	     cosmology_D2_growth(af, growth_f));
+  */
+
+  //write_particles_txt("drift0.txt", particles, 0);
     
   // Drift
 #ifdef _OPENMP
@@ -106,6 +114,8 @@ void cola_drift(Particles* const particles, const double apos1)
     p[i].x[2] += p[i].v[2]*dt + 
                  (p[i].dx1[2]*da1 + p[i].dx2[2]*da2);
   }
+
+  //write_particles_txt("drift1.txt", particles, 0);
     
   particles->a_x= af;
 }

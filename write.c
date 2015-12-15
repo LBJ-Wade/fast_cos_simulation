@@ -6,6 +6,8 @@ void write_particles_txt(char filename[], Particles* particles, const float dx)
 {
   FILE* fp= fopen(filename, "w"); assert(fp);
 
+  printf("# a= %e %e\n", particles->a_x, particles->a_v);
+
   Particle const * const p= particles->p;
   for(size_t i = 0; i < particles->np_local; i++) {
     float_t x[3];
