@@ -1,0 +1,210 @@
+\documentclass[a4paper]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{graphicx}
+
+\begin{document}
+
+\section{Background cosmology}
+
+We only consider flas $\Lambda$CDM Universe, with matter density
+$\Omega_m$ and dark energy density $\Omega_\Lambda = 1 - \Omega_m$ in units of the critical density,
+\begin{equation}
+  \rho_\mathrm{crit}(a) = \frac{3H(a)}{8\pi G}
+\end{equation}
+where Hubble parameter is,
+\begin{equation}
+  H(a) = H_0 \left( \Omega_m a^{-3} + \Omega_\Lambda \right).
+\end{equation}
+
+\section{Equation of motion}
+Let $\bm{x}(t)$ be a comoving position of a particle at time $t$, $m$
+the particle mass, and $\phi(\bm{x}, t)$ the peculiar gravitational
+potential field. The Lagrangian of a particle is,
+\begin{equation}
+  L= \frac{1}{2} m (a\dot{x})^2 - m \phi(\bm{x}, t).
+\end{equation}
+and, Euler-Lagrange equation gives,
+\begin{equation}
+  \label{eq:motion}
+  \frac{d}{dt}(a^2 \dot{\bm{x}}) + \bm{\nabla} \phi(\bm{x}, t) = 0,
+\end{equation}
+or,
+\begin{align}
+  \bm{v} &= a^2 \dot{\bm{x}},\\
+  \dot{\bm{v}} &= - \bm{\nabla} \phi(\bm{x}, t)
+\end{align}
+where $\bm{v}$ is the \textit{canonical velocity}. 
+
+
+The gravitational potential satisfies the Poisson equation,
+\begin{equation}
+  \left( \frac{1}{a} \nabla \right)^2 \phi(\bm{x}, t)
+    = 4\pi G \left[ \rho(\bm{x}, t) - \bar{\rho}(t) \right],
+\end{equation}
+where $\rho$ is the matter density and $\bar{\rho}$ is the mean matter
+density. Mean matter density is subtracted because it contributes to the background cosmology. Note that $\bm{\nabla}/a$ is the derivative in physical
+corrdinate. This can be rewritten using the critical density,
+\begin{equation}
+  \label{eq:poisson2}
+  \nabla^2 \phi(\bm{x}, t) =
+  \frac{3}{2} H_0^2 \Omega_{m,0} \, a^{-1} \delta(\bm{x}, t)
+\end{equation}
+using,
+\begin{align}
+  \delta(\bm{x}, t) &:= \rho(\bm{x}, t)/\bar{\rho}(t) - 1 \\
+  \bar{\rho}(t)     &= \Omega_{m,0} \rho_{\mathrm{crit},0} a^{-3}
+\end{align}
+
+\section{Variables in the simulation}
+We use the comoving coordinate for particle positions and canonical
+velocity for particles. The internal units are $h^{-1}
+\mathrm{Mpc}$ for position and $100 \,\mathrm{km/s}$ for velocity, 
+\begin{align}
+  &\texttt{x} \leftarrow \bm{x},\\
+  &\texttt{v} \leftarrow \bm{v} = a^2 \dot{\bm{x}}.
+\end{align}
+$H_0 = 1$ in this unit.
+%
+The conversion from internal unit to peculiar velocity
+$\bm{v}_\mathrm{pec} = a \dot{\bm{x}}$ in $\mathrm{km}/\mathrm{s}$
+requires dividing by $a$ to convert canonical velocity to peculiar
+velocity and multiply by $100
+\mathrm{km}$.
+\begin{equation}
+  \bm{v}_\mathrm{pec} = \frac{100 \,\mathrm{[km/s]}}{a} \texttt{v}
+\end{equation}
+
+
+\section{Lagrangian pertubation theory}
+Lagrangian variables are labelled by the initial comoving coordinate $\bm{q} = \lim_{t \rightarrow 0} x$,
+\begin{equation}
+  \bm{x} = \bm{q} + \bm{\Psi}(\bm{q})
+\end{equation}
+The mass coservation gives the expression for the density,
+\begin{equation}
+  d^3 q = (1 + \delta(\bm{x})) d^3 x.
+\end{equation}
+
+\subsection{Linear perturbation}
+
+\begin{align}
+  1 + \delta
+    &= \left| \frac{\partial \bm{x}}{\partial \bm{q}} \right|^{-1}
+     = \left|
+         \begin{array}{ccc}
+           1 + \partial \Psi_1/\partial q_1 & \cdot & \cdot  \\
+           \cdot &  1 + \partial \Psi_2/\partial q_2 & \cdot \\
+          \cdot &  \cdot & 1 + \partial \Psi_3/\partial q_3 \\
+         \end{array}
+       \right|^{-1}\\
+       &\approx (1 + \bm{\nabla}_q \cdot \bm{\Psi})^{-1}
+       \approx (1 - \bm{\nabla}_q \cdot \bm{\Psi}),
+\end{align}
+where the dots in the matrix are first order terms $\partial
+\Psi_i/\partial q_j$.
+\begin{equation}
+  \delta(\bm{x}, t) = - \bm{\nabla}_q \cdot \bm{\Psi}.
+\end{equation}
+The divergence of the equation of motion (\ref{eq:motion}) and the
+Poisson equation (\ref{eq:poisson2}) give,
+\begin{equation}
+  \frac{d}{dt} \left( a^2 \bm{\nabla}\cdot\bm{\Psi} \right)
+  = -\frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \bm{\nabla}\cdot\bm{\Psi}.
+\end{equation}
+where $\bm{\nabla}_q = \bm{\nabla}$ in leading order was used.
+The solution is
+\begin{equation}
+  \bm{\Psi}(\bm{q}, t) = D_1(t) \bm{\Psi}(\bm{q})
+\end{equation}
+for any displacement field $\bm{\Psi}(\bm{q})$ with the \textit{linear growth factor} $D_1(a)$ that satisfies,
+\begin{equation}
+  \frac{d}{dt}\left( a^2 \dot{D} \right)
+  + \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} D = 0.
+\end{equation}
+This is a second order linear differential equation; its general
+solution is a linear combination of two special solutions. Usually,
+one of them is a growing mode, and the other is a decaying mode. The
+growing solution is known to be,
+\begin{equation}
+  D_1(a) \propto \tilde{D}(a) := H(a) \int_0^a \left( a'H(a') \right)^{-3} da',
+\end{equation}
+and the growth factor is normalised to be 1 at present as a convention,
+\begin{equation}
+  D(a) = \tilde{D}(a)/\tilde{D}(1)
+\end{equation}
+%
+The \textit{linear growth rate} $f$ is the logatithmic derivative of $D_1$,
+\begin{equation}
+  f := \frac{d\ln D_1}{d\ln a}.
+\end{equation}
+Simple approximate solutions, $f \approx \Omega^{0.6}$ or
+$\Omega^{0.55}$, are often used, but analytical derivative is also easy,
+\begin{equation}
+  f = \left[ (aH)^2 \tilde{D}(a) \right]^{-1} - \frac{3}{2} \Omega(a).
+\end{equation}
+%Peculiar velocity
+%\begin{align}
+%  \bm{v}_\mathrm{pec} &= a \dot{\bm{\Psi}}(\bm{q}, t)
+%    = a (\dot{D}/D) \bm{\Psi}
+%    = \frac{da}{dt} \frac{a}{D} \frac{dD}{da} \bm{\Psi}\\
+%   &= a H\!f  \bm{\Psi}(\bm{q}, t)
+%\end{align}
+
+\subsection{2LPT}
+2nd order Lagrangian Perturabation Theory (2LPT)
+\begin{equation}
+  \bm{\Psi}(\bm{q}, a) =
+    D_1(a) \bm{\Psi}^{(1)}(\bm{q}) + D_2(a) \bm{\Psi}^{(2)}(\bm{q}) + \cdots
+\end{equation}
+where, $\bm{\Psi}^{(1)}$ and $\bm{\Psi}^{(2)}$ are solutions of,
+\begin{align}
+  \bm{\nabla}_q \cdot \bm{\Psi}^{(1)} &= - \delta_0(\bm{q})\\
+  \bm{\nabla}_q \cdot \bm{\Psi}^{(2)} &= \sum_{i < j}
+    \left( \Psi^{(1)}_{i,i} \Psi^{(1)}_{j,j} - \Psi^{(1)}_{i,j} \Psi^{(1)}_{j,i}
+    \right)
+\end{align}
+where $\delta_0(q)$ is a linear random Gaussian density contrast field
+extrapolated to $a=1$ with the linear growth factor.
+\begin{equation}
+  D_2(a) = -\frac{3}{7} D_1(a)^2 \Omega(a)^{-1/143}
+\end{equation}
+%
+2LPT velocity can be obtained by time derivative,
+%
+\begin{equation}
+  \bm{v}_\mathrm{2LPT} = a^2 \dot{\bm{x}} =
+    a^2 \dot{D}_1 \bm{\Psi}^{(1)} + a^2 \dot{D}_2 \bm{\Psi}^{(2)},
+\end{equation}
+where,
+\begin{align}
+  \dot{D}_1 &= \frac{D_1}{a}\frac{da}{dt} = D_1(a) H(a) f,\\
+  \dot{D}_2 &= 2 D_2(a) \frac{\dot{D}_1}{D_1} = 2 D_2(a) H(a) f.
+\end{align}
+Time derivaive of $\Omega^{-1/143}$ is neglected because it is very
+small.\\
+
+
+\noindent In the simulation, 2LPT position is,
+\begin{equation}
+  \bm{x}_\mathrm{2LPT} = \bm{x}_0 + D_1(a) d\bm{x}^{(1)} + D_2(a) d\bm{x}^{(2)}
+\end{equation}
+with,
+\begin{align}
+  &d\bm{x}^{(1)} \leftarrow \bm{\Psi}^{(1)},\\
+  &d\bm{x}^{(2)} \leftarrow \bm{\Psi}^{(2)},\\
+  &D_1(a) = \texttt{cosmology\_D\_growth}(a),\\
+  &D_2(a) =  \texttt{cosmology\_D2\_growth}(a).          
+\end{align}
+%
+2LPT velocity is,
+\begin{equation}
+  \bm{v}_\mathrm{2LPT} = D_{1v}(a) d\bm{x}^{(1)} + D_{2v} d\bm{x}^{(2)},
+\end{equation}
+with,
+\begin{align}
+  D_{1v} &= a^2 \dot{D}_1(a) = \texttt{cosmology\_Dv\_growth}(a),\\
+  D_{2v} &= a^2 \dot{D}_2(a) = \texttt{cosmology\_D2v\_growth}(a)
+\end{align}
+
+\end{document}

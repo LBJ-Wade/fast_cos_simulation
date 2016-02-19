@@ -49,6 +49,24 @@ double cosmology_D2_growth(const double a, const double D)
   return -3.0/7.0*D*D*pow(cosmology_omega(a), -1.0/143.0);
 }
 
+double cosmology_Dv_growth(const double a, const double D)
+{
+  assert(a > 0);
+
+  double H= cosmology_hubble_function(a);
+  double f= cosmology_f_growth_rate(a);
+  
+  return a*a*D*H*f;
+}
+
+double cosmology_D2v_growth(const double a, const double D2)
+{
+  double H= cosmology_hubble_function(a);
+  double f= cosmology_f_growth_rate(a);
+
+  return 2.0*a*a*D2*H*f;
+}
+
 double cosmology_f_growth_rate(const double a)
 {
   cosmology_check();

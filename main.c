@@ -14,7 +14,7 @@
 #include "cola.h"
 #include "pm.h"
 #include "write.h"
-#include "domain.h"
+#include "leapfrog.h"
 
 Particles* alloc_particles(const int nc);
 
@@ -60,21 +60,22 @@ int main(int argc, char* argv[])
   lpt_init(nc, boxsize, mem1);
   pm_init(nc_pm, pm_factor, mem1, mem2, boxsize);
 
-  lpt_set_displacements(seed, ps, a_final, particles);
+  //lpt_set_displacements(seed, ps, a_final, particles);
 
   //domain_decomposition(particles, lpt_generate_phi(seed, ps));
-  domain_decomposition2(particles);
+  //domain_decomposition2(particles);
 
-  write_particles_txt("particle.txt", particles, 2.0f*boxsize/nc);
+  //write_particles_txt("particle.txt", particles, 2.0f*boxsize/nc);
 
-  msg_abort("developement abort");
+  //
   //
   
-  //lpt_set_displacements(seed, ps, a_init, particles);
+  lpt_set_displacements(seed, ps, a_init, particles);
   particles->a_v= 1.0/nstep; // origial a_v
-
+  leapfrog_set_initial_velocities(particles);
   //write_particles_txt("particle.txt", particles); abort();
-		      
+
+  msg_abort("developement abort");
   
   for(int istep=1; istep<nstep; istep++) {
     float_t a_vel= (istep + 0.5)/nstep;

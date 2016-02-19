@@ -52,24 +52,12 @@ void cola_kick(Particles* const particles, const double avel1)
     float_t ay= -1.5*Om*(f[i][1] + p[i].dx1[1]*q1 + p[i].dx2[1]*q2);
     float_t az= -1.5*Om*(f[i][2] + p[i].dx1[2]*q1 + p[i].dx2[2]*q2);
 
-    /*
-    fprintf(fp, "%e %e %e %e %e %e %e\n",
-	    p[i].v[0],
-	    -1.5*Om*f[i][0],
-	    p[i].dx1[0],
-	    p[i].dx2[0],
-	    p[i].dx1[0]*q1 + p[i].dx2[0]*q2,
-	    ax,
-	    ax*kick_factor);
-    */
-
     p[i].v[0] += ax*kick_factor;
     p[i].v[1] += ay*kick_factor;
     p[i].v[2] += az*kick_factor;
 
   }
-  //fclose(fp); abort();
-  
+
   //velocity is now at a= avel1
   particles->a_v= avel1;
 }
@@ -93,14 +81,6 @@ void cola_drift(Particles* const particles, const double apos1)
                      cosmology_D2_growth(ai, growth_i);
 
   msg_printf(msg_info, "Drift %lg -> %lg\n", ai, af);
-  /*
-  msg_printf(msg_debug, "growth factor %lg %lg -> %lg %lg\n",
-	     growth_i, growth_f,
-	     cosmology_D2_growth(ai, growth_i),
-	     cosmology_D2_growth(af, growth_f));
-  */
-
-  //write_particles_txt("drift0.txt", particles, 0);
     
   // Drift
 #ifdef _OPENMP
@@ -115,8 +95,6 @@ void cola_drift(Particles* const particles, const double apos1)
                  (p[i].dx1[2]*da1 + p[i].dx2[2]*da2);
   }
 
-  //write_particles_txt("drift1.txt", particles, 0);
-    
   particles->a_x= af;
 }
 
@@ -141,7 +119,7 @@ double Sq(double ai, double af, double av) {
   F.function = &fun;
   F.params = &alpha;
   
-  gsl_integration_qag (&F, ai, af, 0, 1e-5, 5000,6,
+  gsl_integration_qag (&F, ai, af, 0, 1e-5, 5000, 6,
 		       w, &result, &error); 
   
   gsl_integration_workspace_free (w);
