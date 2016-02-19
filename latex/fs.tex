@@ -7,7 +7,7 @@
 
 \section{Background cosmology}
 
-We only consider flas $\Lambda$CDM Universe, with matter density
+We only consider flat $\Lambda$CDM Universe, with matter density
 $\Omega_m$ and dark energy density $\Omega_\Lambda = 1 - \Omega_m$ in units of the critical density,
 \begin{equation}
   \rho_\mathrm{crit}(a) = \frac{3H(a)}{8\pi G}
@@ -75,6 +75,15 @@ velocity and multiply by $100
   \bm{v}_\mathrm{pec} = \frac{100 \,\mathrm{[km/s]}}{a} \texttt{v}
 \end{equation}
 
+The force variable, $\texttt{f}$, only contains the solution of Poisson
+equation without any coefficients,
+\begin{equation}
+  \texttt{f} := \bm{\nabla} \nabla^{-2} \delta(\bm{x}).
+\end{equation}
+The acceleration is,
+\begin{equation}
+  \dot{\texttt{v}} = -\frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \texttt{f}.
+\end{equation}
 
 \section{Lagrangian pertubation theory}
 Lagrangian variables are labelled by the initial comoving coordinate $\bm{q} = \lim_{t \rightarrow 0} x$,
@@ -119,8 +128,9 @@ The solution is
 \end{equation}
 for any displacement field $\bm{\Psi}(\bm{q})$ with the \textit{linear growth factor} $D_1(a)$ that satisfies,
 \begin{equation}
-  \frac{d}{dt}\left( a^2 \dot{D} \right)
-  + \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} D = 0.
+  \label{eq:linear-growth-factor}
+  \frac{d}{dt}\left( a^2 \dot{D}_1 \right)
+  + \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} D_1 = 0.
 \end{equation}
 This is a second order linear differential equation; its general
 solution is a linear combination of two special solutions. Usually,
@@ -152,6 +162,7 @@ $\Omega^{0.55}$, are often used, but analytical derivative is also easy,
 %\end{align}
 
 \subsection{2LPT}
+\subsubsection{Position}
 2nd order Lagrangian Perturabation Theory (2LPT)
 \begin{equation}
   \bm{\Psi}(\bm{q}, a) =
@@ -166,14 +177,34 @@ where, $\bm{\Psi}^{(1)}$ and $\bm{\Psi}^{(2)}$ are solutions of,
 \end{align}
 where $\delta_0(q)$ is a linear random Gaussian density contrast field
 extrapolated to $a=1$ with the linear growth factor.
+The equation for the 2nd-order growth rate is,
+\begin{equation}
+  \label{eq:second-growth-factor}
+  \frac{d}{dt} ( a^2 \dot{D_2} )
+    + \frac{3}{2}H_0^2 \Omega_{m,0} a^{-1} (-D_2 + D_1^2) = 0,
+\end{equation}
+whose approximate solution is known to be,
 \begin{equation}
   D_2(a) = -\frac{3}{7} D_1(a)^2 \Omega(a)^{-1/143}
 \end{equation}
 %
+In the simulation, 2LPT position is stored in $\texttt{dx1}$ and $\texttt{dx2}$,
+\begin{equation}
+  \bm{x}_\mathrm{2LPT} = \bm{x}_0 + D_1(a) d\bm{x}^{(1)} + D_2(a) d\bm{x}^{(2)}
+\end{equation}
+with,
+\begin{align}
+  &d\bm{x}^{(1)} \leftarrow \bm{\Psi}^{(1)},\\
+  &d\bm{x}^{(2)} \leftarrow \bm{\Psi}^{(2)},\\
+  &D_1(a) = \texttt{cosmology\_D\_growth}(a),\\
+  &D_2(a) =  \texttt{cosmology\_D2\_growth}(a, D_1).          
+\end{align}
+
+\subsubsection{Velocity}
 2LPT velocity can be obtained by time derivative,
 %
 \begin{equation}
-  \bm{v}_\mathrm{2LPT} = a^2 \dot{\bm{x}} =
+  \bm{v}_\mathrm{2LPT} = a^2 \dot{\bm{x}}_\mathrm{2LPT} =
     a^2 \dot{D}_1 \bm{\Psi}^{(1)} + a^2 \dot{D}_2 \bm{\Psi}^{(2)},
 \end{equation}
 where,
@@ -185,26 +216,37 @@ Time derivaive of $\Omega^{-1/143}$ is neglected because it is very
 small.\\
 
 
-\noindent In the simulation, 2LPT position is,
+\noindent In the simulation, the 2LPT velocity is written as,
 \begin{equation}
-  \bm{x}_\mathrm{2LPT} = \bm{x}_0 + D_1(a) d\bm{x}^{(1)} + D_2(a) d\bm{x}^{(2)}
+  \bm{v}_\mathrm{2LPT} = D_{1v}(a) d\bm{x}^{(1)} + D_{2v}(a) d\bm{x}^{(2)},
 \end{equation}
 with,
 \begin{align}
-  &d\bm{x}^{(1)} \leftarrow \bm{\Psi}^{(1)},\\
-  &d\bm{x}^{(2)} \leftarrow \bm{\Psi}^{(2)},\\
-  &D_1(a) = \texttt{cosmology\_D\_growth}(a),\\
-  &D_2(a) =  \texttt{cosmology\_D2\_growth}(a).          
+  D_{1v}(a) &= a^2 \dot{D}_1(a) = \texttt{cosmology\_Dv\_growth}(a, D_1),\\
+  D_{2v}(a) &= a^2 \dot{D}_2(a) = \texttt{cosmology\_D2v\_growth}(a, D_2)
 \end{align}
-%
-2LPT velocity is,
+
+\subsubsection{Acceleration}
+The fist order is,
 \begin{equation}
-  \bm{v}_\mathrm{2LPT} = D_{1v}(a) d\bm{x}^{(1)} + D_{2v} d\bm{x}^{(2)},
+  \frac{d}{dt}\bm{v}^{(1)} = \frac{d}{dt} (a^2 \dot{D_1}) \Psi^{(1)}
+  = -\frac{3}{2} \Omega_{m,0} a^{-1} D_1 \Psi^{(1)},
+\end{equation}
+where we use equation~(\ref{eq:linear-growth-factor}) for the linear growth factor. The second order with equation~(\ref{eq:second-growth-factor}) gives,
+\begin{equation}
+  \frac{d}{dt}\bm{v}^{(2)} = \frac{d}{dt} (a^2 \dot{D_2}) \Psi^{(2)}
+  = -\frac{3}{2} H_0^2 \Omega_{m,0} a^{-1}
+    \left(1 + \frac{3}{7} \Omega_m^{-1/143}\right) \Psi^{(2)}
+\end{equation}
+% ToDo: check sign of equation (31) and the above eq
+
+\begin{equation}
+  \bm{a}_\mathrm{2LPT} = -\frac{2}{3} \Omega_{m,0} a^{-1} \left[ D_{1}(a) d\bm{x}^{(1)} + D_{2a}(a) d\bm{x}^{(2)} \right],
 \end{equation}
 with,
-\begin{align}
-  D_{1v} &= a^2 \dot{D}_1(a) = \texttt{cosmology\_Dv\_growth}(a),\\
-  D_{2v} &= a^2 \dot{D}_2(a) = \texttt{cosmology\_D2v\_growth}(a)
-\end{align}
+\begin{equation}
+  D_{2a}(a) = \texttt{cosmology\_D2a\_growth}(a, D_1)
+\end{equation}
+
 
 \end{document}
