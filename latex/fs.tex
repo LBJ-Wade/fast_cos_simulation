@@ -78,7 +78,7 @@ velocity and multiply by $100
 The force variable, $\texttt{f}$, only contains the solution of Poisson
 equation without any coefficients,
 \begin{equation}
-  \texttt{f} := \bm{\nabla} \nabla^{-2} \delta(\bm{x}).
+  \texttt{f} \leftarrow \bm{\nabla} \nabla^{-2} \delta(\bm{x}).
 \end{equation}
 The acceleration is,
 \begin{equation}
@@ -119,7 +119,7 @@ The divergence of the equation of motion (\ref{eq:motion}) and the
 Poisson equation (\ref{eq:poisson2}) give,
 \begin{equation}
   \frac{d}{dt} \left( a^2 \bm{\nabla}\cdot\bm{\Psi} \right)
-  = -\frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \bm{\nabla}\cdot\bm{\Psi}.
+  - \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \bm{\nabla}\cdot\bm{\Psi} = 0.
 \end{equation}
 where $\bm{\nabla}_q = \bm{\nabla}$ in leading order was used.
 The solution is
@@ -130,9 +130,9 @@ for any displacement field $\bm{\Psi}(\bm{q})$ with the \textit{linear growth fa
 \begin{equation}
   \label{eq:linear-growth-factor}
   \frac{d}{dt}\left( a^2 \dot{D}_1 \right)
-  + \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} D_1 = 0.
+  - \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} D_1 = 0.
 \end{equation}
-This is a second order linear differential equation; its general
+This is a second-order linear differential equation; its general
 solution is a linear combination of two special solutions. Usually,
 one of them is a growing mode, and the other is a decaying mode. The
 growing solution is known to be,
@@ -141,7 +141,7 @@ growing solution is known to be,
 \end{equation}
 and the growth factor is normalised to be 1 at present as a convention,
 \begin{equation}
-  D(a) = \tilde{D}(a)/\tilde{D}(1)
+  D(a) = \tilde{D}(a)/\tilde{D}(1).
 \end{equation}
 %
 The \textit{linear growth rate} $f$ is the logatithmic derivative of $D_1$,
@@ -162,33 +162,96 @@ $\Omega^{0.55}$, are often used, but analytical derivative is also easy,
 %\end{align}
 
 \subsection{2LPT}
-\subsubsection{Position}
-2nd order Lagrangian Perturabation Theory (2LPT)
+We now expand $\Psi$ up to second order in $\delta_0$,
 \begin{equation}
   \bm{\Psi}(\bm{q}, a) =
-    D_1(a) \bm{\Psi}^{(1)}(\bm{q}) + D_2(a) \bm{\Psi}^{(2)}(\bm{q}) + \cdots
+    D_1(a) \bm{\Psi}^{(1)}(\bm{q}) + D_2(a) \bm{\Psi}^{(2)}(\bm{q}) + \cdots.
 \end{equation}
-where, $\bm{\Psi}^{(1)}$ and $\bm{\Psi}^{(2)}$ are solutions of,
-\begin{align}
-  \bm{\nabla}_q \cdot \bm{\Psi}^{(1)} &= - \delta_0(\bm{q})\\
-  \bm{\nabla}_q \cdot \bm{\Psi}^{(2)} &= \sum_{i < j}
-    \left( \Psi^{(1)}_{i,i} \Psi^{(1)}_{j,j} - \Psi^{(1)}_{i,j} \Psi^{(1)}_{j,i}
-    \right)
-\end{align}
-where $\delta_0(q)$ is a linear random Gaussian density contrast field
-extrapolated to $a=1$ with the linear growth factor.
-The equation for the 2nd-order growth rate is,
+
+\subsubsection{Derivation}
+Starting from the basic equations,
+\begin{equation}
+  \frac{d}{dt} (a^2 \dot{\bm{\Psi}}) + \bm{\nabla}_x \phi(\bm{x}, t) = 0,
+\end{equation}
+\begin{equation}
+  \nabla^2_x \phi(\bm{x}, t) =
+    \frac{3}{2}H_0^2 \Omega_{m,0} a^{-1} \delta(\bm{x}, t),
+\end{equation}
+\begin{equation}
+  1 + \delta = J^{-1} =
+    \left|\frac{\partial \bm{x}}{\partial \bm{q}} \right|^{-1},
+\end{equation}
+and taking divergence of $\Psi$ gives,
+\begin{equation}
+  J \bm{\nabla}_x\cdot \frac{d}{dt}\left(a^2 \bm{\Psi} \right) =
+  \frac{3}{2}H_0^2 \Omega_{m,0} a^{-1} (J - 1)
+\end{equation}
+The Jacobian up to second order is,
+\begin{equation}
+  J = 1 + \bm{\nabla}_q \cdot \bm{\Psi}^{(1)} + \bm{\nabla}_q \cdot{\Psi}^{(2)}
+    + \sum_{i<j} \left( \Psi_{i,i}^{(1)} \Psi_{j,j}^{(1)} - \Psi_{i,j}^{(1)} \Psi_{j,i}^{(1)}\right),
+\end{equation}
+where $\Psi_{i,j} = \partial \Psi_i / \partial q_j$.
+
+One the left-hand side,
+\begin{equation}
+  J \frac{\partial}{\partial x_i} =
+  J \frac{\partial q_j}{\partial x_i} \frac{\partial}{\partial q_j} =
+  \hat{J}_{ij} \frac{\partial}{\partial q_j},
+\end{equation}
+where, $\hat{J}_{ij}$ is the cofactor of $J_{ij} = \partial x_i/\partial q_j$,
+which gives the left-hand side,
+\begin{equation}
+  \frac{d}{dt} \left( a^2 \bm{\nabla}_q \cdot \dot{\bm{\Psi}}^{(2)} \right) +
+  2 \frac{d}{dt} \left( a^2 \dot{D}_1 \right)
+  \sum_{i<j} \left( \Psi_{i,i}^{(1)} \Psi_{j,j}^{(1)} -
+      \Psi_{i,j}^{(1)} \Psi_{j,i}^{(1)}\right).
+\end{equation}
+The final euation for the 2nd order is,
+\begin{equation}
+  \frac{d}{dt} \left( a^2 \bm{\nabla}_q \cdot \dot{\bm{\Psi}}^{(2)} \right)
+  = \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \left[
+    \bm{\nabla}_q \cdot \bm{\Psi}^{(2)} -
+      \sum_{i<j} \left( \Psi_{i,i}^{(1)} \Psi_{j,j}^{(1)} -
+      \Psi_{i,j}^{(1)} \Psi_{j,i}^{(1)}\right)
+      \right].
+\end{equation}
+We can factor out the spacial dependence by setting,
+\begin{equation}
+  \bm{\nabla}_q \cdot \bm{\Psi}^{(2)}(q, t) =
+  D_2(t) \sum_{i<j} \left( \Psi_{i,i}^{(1)} \Psi_{j,j}^{(1)} -
+  \Psi_{i,j}^{(1)} \Psi_{j,i}^{(1)}\right)_{a=1}
+\end{equation}
+and obtain an equation for the second-order growth factor $D_2(t)$,
 \begin{equation}
   \label{eq:second-growth-factor}
-  \frac{d}{dt} ( a^2 \dot{D_2} )
-    + \frac{3}{2}H_0^2 \Omega_{m,0} a^{-1} (-D_2 + D_1^2) = 0,
+  \frac{d}{dt} \left( a^2 \dot{D}_2 \right)
+    = \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1} \left[  D_2 - D_1^2 \right].
 \end{equation}
-whose approximate solution is known to be,
+For Einstein-Desitter universe ($\Omega=1$), this equation can be solved by setting $D_2 = g D_1^2$,
+\begin{equation}
+  2g = -\frac{3}{2} (1 + g),
+\end{equation}
+or, $g = -3/7$. An approximate solution in $\Lambda$CDM Universe is
+known to be,
 \begin{equation}
   D_2(a) = -\frac{3}{7} D_1(a)^2 \Omega(a)^{-1/143}
 \end{equation}
+for $\Lambda$ CDM universe.  
+
+
+\subsubsection{Position}
+$\bm{\Psi}^{(1)}$ and $\bm{\Psi}^{(2)}$ are solved for,
+\begin{align}
+  \bm{\nabla}_q \cdot \bm{\Psi}^{(1)} &= - \delta_0(\bm{q}),\\
+  \bm{\nabla}_q \cdot \bm{\Psi}^{(2)} &= \sum_{i < j}
+    \left( \Psi^{(1)}_{i,i} \Psi^{(1)}_{j,j} - \Psi^{(1)}_{i,j} \Psi^{(1)}_{j,i}
+    \right),
+\end{align}
+where $\delta_0(q)$ is a linear random Gaussian density contrast field
+extrapolated to $a=1$ with the linear growth factor.
 %
-In the simulation, 2LPT position is stored in $\texttt{dx1}$ and $\texttt{dx2}$,
+In the simulation, 2LPT displacements are stored in $\texttt{dx1}$ and $\texttt{dx2}$,
 \begin{equation}
   \bm{x}_\mathrm{2LPT} = \bm{x}_0 + D_1(a) d\bm{x}^{(1)} + D_2(a) d\bm{x}^{(2)}
 \end{equation}
@@ -212,8 +275,12 @@ where,
   \dot{D}_1 &= \frac{D_1}{a}\frac{da}{dt} = D_1(a) H(a) f,\\
   \dot{D}_2 &= 2 D_2(a) \frac{\dot{D}_1}{D_1} = 2 D_2(a) H(a) f.
 \end{align}
-Time derivaive of $\Omega^{-1/143}$ is neglected because it is very
-small.\\
+The time derivaive of $\Omega^{-1/143}$ is neglected because it is very
+small. Another known approximate solution is,
+\begin{equation}
+  f_2 := \frac{d\ln D_2}{d\ln a} \approx 2 \Omega^{4/7}
+\end{equation}
+for $0.1 \lesssim \Omega \lesssim 1$.\\
 
 
 \noindent In the simulation, the 2LPT velocity is written as,
@@ -227,21 +294,21 @@ with,
 \end{align}
 
 \subsubsection{Acceleration}
-The fist order is,
+The first order is,
 \begin{equation}
   \frac{d}{dt}\bm{v}^{(1)} = \frac{d}{dt} (a^2 \dot{D_1}) \Psi^{(1)}
-  = -\frac{3}{2} \Omega_{m,0} a^{-1} D_1 \Psi^{(1)},
+  = \frac{3}{2} \Omega_{m,0} a^{-1} D_1 \Psi^{(1)},
 \end{equation}
 where we use equation~(\ref{eq:linear-growth-factor}) for the linear growth factor. The second order with equation~(\ref{eq:second-growth-factor}) gives,
 \begin{equation}
   \frac{d}{dt}\bm{v}^{(2)} = \frac{d}{dt} (a^2 \dot{D_2}) \Psi^{(2)}
-  = -\frac{3}{2} H_0^2 \Omega_{m,0} a^{-1}
-    \left(1 + \frac{3}{7} \Omega_m^{-1/143}\right) \Psi^{(2)}
+  = \frac{3}{2} H_0^2 \Omega_{m,0} a^{-1}
+    \left(D_2 - D_1^2) - 1\right) \Psi^{(2)}
 \end{equation}
 % ToDo: check sign of equation (31) and the above eq
 
 \begin{equation}
-  \bm{a}_\mathrm{2LPT} = -\frac{2}{3} \Omega_{m,0} a^{-1} \left[ D_{1}(a) d\bm{x}^{(1)} + D_{2a}(a) d\bm{x}^{(2)} \right],
+  \bm{a}_\mathrm{2LPT} = \frac{2}{3} \Omega_{m,0} a^{-1} \left[ D_{1}(a) d\bm{x}^{(1)} + D_{2a}(a) d\bm{x}^{(2)} \right],
 \end{equation}
 with,
 \begin{equation}

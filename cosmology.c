@@ -1,4 +1,4 @@
-///
+//
 /// \file  cosmology.c
 /// \brief Analytical functions in cosmology, e.g. linear growth rate
 ///
@@ -65,6 +65,11 @@ double cosmology_D2v_growth(const double a, const double D2)
   double f= cosmology_f_growth_rate(a);
 
   return 2.0*a*a*D2*H*f;
+}
+
+double cosmology_D2a_growth(const double D1, const double D2)
+{
+  return D2 - D1*D1;
 }
 
 double cosmology_f_growth_rate(const double a)

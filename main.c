@@ -72,11 +72,9 @@ int main(int argc, char* argv[])
   
   lpt_set_displacements(seed, ps, a_init, particles);
   particles->a_v= 1.0/nstep; // origial a_v
-  leapfrog_set_initial_velocities(particles);
+  //leapfrog_set_initial_velocities(particles);
   //write_particles_txt("particle.txt", particles); abort();
 
-  msg_abort("developement abort");
-  
   for(int istep=1; istep<nstep; istep++) {
     float_t a_vel= (istep + 0.5)/nstep;
     float_t a_pos= (istep + 1.0)/nstep;
@@ -85,7 +83,7 @@ int main(int argc, char* argv[])
     cola_kick(particles, a_vel);
     cola_drift(particles, a_pos);
 
-    write_particles_txt("particles_drifted.txt", particles, 0); abort();
+    //write_particles_txt("particles_drifted.txt", particles, 0); abort();
   }
      
   msg_printf(msg_info, "Hello World\n");

@@ -27,17 +27,17 @@ void cola_kick(Particles* const particles, const double avel1)
   Om= particles->omega_m;
   msg_printf(msg_info, "Kick %lg -> %lg\n", ai, avel1);
 
-  const double Om143= pow(Om/(Om + (1 - Om)*a*a*a), 1.0/143.0);
   const float_t kick_factor= (pow(af, nLPT) - pow(ai, nLPT))/
                              (nLPT*pow(a, nLPT)*sqrt(Om/a+(1.0-Om)*a*a));
   const double growth1= cosmology_D_growth(a);
+  const double growth2= cosmology_D2_growth(a, growth1);
 	
   msg_printf(msg_debug, "growth factor %lg\n", growth1);
 
-  // Need to review/rederive !!!
-  const float_t q2=-3.0/7.0*pow(Om, -1.0/143.0)*growth1*growth1*(1.0 + 7.0/3.0*Om143);
-  const float_t q1=growth1;
+  const float_t q1= growth1;
+  const float_t q2= cosmology_D2a_growth(growth1, growth2);
 
+  
   Particle* const p= particles->p;
   const int np= particles->np_local;
   float3* const f= particles->force;
